@@ -117,3 +117,4 @@ public class MainActivity extends Activity implements
         Log.d("MainActivity", "Received connection message: " + message);
     }
 }
+
