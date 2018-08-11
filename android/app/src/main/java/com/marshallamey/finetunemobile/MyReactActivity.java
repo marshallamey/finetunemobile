@@ -30,7 +30,7 @@ public class MyReactActivity extends Activity implements DefaultHardwareBackBtnH
                 .build();
         // The string here (e.g. "MyReactNativeApp") has to match
         // the string in AppRegistry.registerComponent() in index.js
-        mReactRootView.startReactApplication(mReactInstanceManager, "FineTuneMobile", null);
+        mReactRootView.startReactApplication(mReactInstanceManager, "finetunemobile", null);
 
         setContentView(mReactRootView);
     }
