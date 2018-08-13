@@ -1,65 +1,63 @@
 import React from 'react';
-import { Image, View, Text, Button } from 'react-native';
-import { createStackNavigator } from 'react-navigation';
-import logo from '../img/finetune-banner-logo.jpg';
-import Header from './Header';
+import { View } from 'react-native';
+import Button from 'react-native-button';
 
 export default class HomePage extends React.Component {
 
-  
-
   render() {
+
     const styles = {
       viewStyle: {
         backgroundColor: '#000000',
-        alignItems: 'center',
-        flex: 1
-      },
-      bodyStyle: {
-        backgroundColor: '#333333',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
         alignSelf: 'stretch',
         flex: 1
       },
-      imgdivStyle: {
-        width: 300, 
-        height: 165,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 10,
-        marginTop: 10
-  
-  
+      btnStyle: {
+        color: '#ffffff',      
+        fontSize: 20
       },
-      imageStyle: { 
-        width: 300, 
-        height: 170,
+      containerStyle: { 
+        padding: 10, 
+        marginBottom: 20,
+        height: 45, 
+        overflow: 'hidden', 
+        borderRadius: 4, 
+        backgroundColor: '#333333' 
       }
     };
+
     return (
-      <View style={styles.viewStyle}>
 
-        <Header headerText={'FineTune Pro'} />
+      <View style={ styles.viewStyle }>
 
-        <View style={styles.imgdivStyle}>
-          <Image source={logo} style={styles.imageStyle} />
-        </View>   
-
-        <View style={styles.bodyStyle}>
-          <Text>Body</Text>
-          <Button
-          title="Search for Music"
-          onPress={() => this.props.navigation.navigate('Search')}
-        />
         <Button
-          title="See Results"
-          onPress={() => this.props.navigation.navigate('Results')}
-        />
-        </View>
+          style={ styles.btnStyle }
+          containerStyle={ styles.containerStyle }       
+          onPress={ () => this.props.navigation.navigate('ListSearch')  }
+        >
+          Search for Music
+        </Button>
+
+        <Button
+          style={ styles.btnStyle }
+          containerStyle={ styles.containerStyle }
+          onPress={ () => this.props.navigation.navigate('SongSearch') }
+        >
+          Get Song Details
+        </Button>
+
+        <Button
+          style={ styles.btnStyle }
+          containerStyle={ styles.containerStyle }
+          onPress={ () => this.props.navigation.navigate('Playlists') }
+        >
+          See Playlists
+        </Button>
 
       </View>
+
     );
   }
 }

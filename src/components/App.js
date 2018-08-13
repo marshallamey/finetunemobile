@@ -1,14 +1,22 @@
 import React, { Component } from 'react';
 import { createStackNavigator } from 'react-navigation';
 import HomePage from './Home';
-import MusicList from './MusicList';
-import MusicSearchForm from './MusicSearchForm';
+
+import Playlists from './Playlists';
+import PlaylistSearch from './PlaylistSearch';
+import PlaylistResults from './PlaylistResults';
+import SongSearch from './SongSearch';
+import SongResult from './SongResult';
+
 
 const RootStack = createStackNavigator(
   {
     Home: HomePage,
-    Search: MusicSearchForm,
-    Results: MusicList
+    ListSearch: PlaylistSearch,
+    ListResults: PlaylistResults,
+    SongSearch: SongSearch,
+    SongResult: SongResult,
+    Playlists: Playlists
   },
   {
     initialRouteName: 'Home'
