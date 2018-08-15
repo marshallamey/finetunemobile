@@ -1,17 +1,20 @@
 import React, { Component } from 'react';
-import { createStackNavigator } from 'react-navigation';
-import HomePage from './Home';
+import { createSwitchNavigator, createStackNavigator } from 'react-navigation';
 
+import AuthLoadingScreen from '../screens/AuthLoadingScreen';
+import SignInScreen from '../screens/SignInScreen';
+import HomeScreen from '../screens/HomeScreen';
 import Playlists from './Playlists';
 import PlaylistSearch from './PlaylistSearch';
 import PlaylistResults from './PlaylistResults';
 import SongSearch from './SongSearch';
 import SongResult from './SongResult';
 
+const AuthStack = createStackNavigator({ SignIn: SignInScreen });
 
-const RootStack = createStackNavigator(
+const AppStack = createStackNavigator(
   {
-    Home: HomePage,
+    Home: HomeScreen,
     ListSearch: PlaylistSearch,
     ListResults: PlaylistResults,
     SongSearch: SongSearch,
@@ -20,6 +23,17 @@ const RootStack = createStackNavigator(
   },
   {
     initialRouteName: 'Home'
+  }
+);
+
+const RootStack = createSwitchNavigator(
+  {
+    AuthLoading: AuthLoadingScreen,
+    Auth: AuthStack,
+    App: AppStack    
+  },
+  {
+    initialRouteName: 'AuthLoading'
   }
 );
 

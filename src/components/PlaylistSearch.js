@@ -9,6 +9,7 @@ import {
   TouchableHighlight,
 TouchableOpacity } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { CheckBox } from 'react-native-elements'
 import Button from 'react-native-button';
 import  Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
@@ -16,6 +17,10 @@ import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 import allGenres from '../js/genres.js';
 
 export default class PlaylistSearch extends Component {
+  static navigationOptions = {
+    title: 'FineTune Search',
+  };
+
   constructor(props) {
     super(props);
 
@@ -36,7 +41,7 @@ export default class PlaylistSearch extends Component {
        max_liveness: 1.0,
        min_loudness: -60,
        max_loudness: 0,
-       target_mode: 0,
+       target_mode: 1,
        min_popularity: 0,
        max_popularity: 100,
        min_speechiness: 0.0,
@@ -52,7 +57,6 @@ export default class PlaylistSearch extends Component {
    
        keyDisabled: true,
        modeDisabled: true,
-       signatureDisabled: true,
 
        sliderLength: 280,
        acPopoverOpen: false,
@@ -74,14 +78,15 @@ export default class PlaylistSearch extends Component {
    
   }
 
-     //FIX!!  COULD BE BETTER!!
-   /* FUNCTION(): Change state of song attributes when user moves any input slider */
+
+  
+   /* FUNCTION(): Change state of chosen genres */
    onSelectedItemsChange(genres) { 
     console.log("CHOSEN GENRES: ", genres);  
     this.setState({ chosen_genres: genres });        
  }
 
-  /* FUNCTION: Change state of song attributes when user moves any input slider */
+  /* FUNCTION: Change state of song attributes when user moves any MultiSlider */
     onRangeChange(id, value) { 
     console.log(id, value);
     const attrMin = "min_"+id;   
@@ -92,7 +97,7 @@ export default class PlaylistSearch extends Component {
     this.setState(newState);        
   }
 
-  /* FUNCTION: Change state of song attributes when user moves any input slider */
+  /* FUNCTION: Change state of song attributes when user moves any Slider */
   onSliderChange(id, value) {    
     const attr = "target_"+id;   
     var newState = {}
@@ -100,7 +105,15 @@ export default class PlaylistSearch extends Component {
     this.setState(newState);    
   }
 
-   /* FUNCTION(): Show modal with more information about each attribute */
+  /** FUNCTION(): Toggle a Slider for use **/
+  toggleAttr(id) {
+    const disabledState = id+'Disabled'
+    let newState = {}
+    newState[disabledState] = !this.state[disabledState]
+    this.setState(newState)
+ }
+
+   /* FUNCTION(): Show Modal with more information about an attribute */
    togglePopover(id) {
     var popoverState = id+"PopoverOpen";
     console.log(popoverState);
@@ -111,7 +124,7 @@ export default class PlaylistSearch extends Component {
     this.setState(newState);
  }
 
-  // Display the proper note for key attribute
+  /* FUNCTION(): Display the proper note for key attribute */
   convertKey(note){
     const pitchNotation = {
        0: 'C',
@@ -130,11 +143,16 @@ export default class PlaylistSearch extends Component {
     return pitchNotation[note];
  }
 
-  // Display the proper time for duration attribute
+  /* FUNCTION(): Display the proper time for duration attribute */
   millisToMinutesAndSeconds(millis) {
     var minutes = Math.floor(millis / 60000);
     var seconds = ((millis % 60000) / 1000).toFixed(0);
     return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+  }
+
+  /* FUNCTION(): Send request to Spotify API once form is submitted */
+  handleSubmit(event) {
+    event.preventDefault();
   }
 
   render() {
@@ -163,7 +181,7 @@ export default class PlaylistSearch extends Component {
         borderBottomColor: '#aaaaaa',       
       },
       viewStyleLight: {  
-        backgroundColor: '#555555',   
+        backgroundColor: '#333333',   
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'stretch',
@@ -180,7 +198,7 @@ export default class PlaylistSearch extends Component {
       },
       modalContent: {
         backgroundColor: 'white',
-        padding: 22,
+        padding: 0,
         borderRadius: 4,
         borderColor: 'rgba(0, 0, 0, 0.1)',
       },
@@ -197,21 +215,26 @@ export default class PlaylistSearch extends Component {
       },
       header: {
         color: '#ffffff',
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'center'
       },
       subheader: {
         color: '#ffffff',
-        fontSize: 12,
+        fontSize: 15,
         textAlign: 'center',
         paddingTop: 10,
 
       },
       subheader2: {
         color: '#ffffff',
-        fontSize: 12,
+        fontSize: 15,
         textAlign: 'center',
         paddingBottom: 10
+      },
+      subheader3: {
+        color: '#1ed760',
+        fontSize: 15,
+        textAlign: 'center',
       },
       inputs: {
         paddingTop: 0,
@@ -232,7 +255,8 @@ export default class PlaylistSearch extends Component {
         borderRadius: 20, 
         backgroundColor: '#ff2525',
         justifyContent: 'center'
-      }
+      },
+      iconSize: 16
     };
 
     const downArrowIcon = (
@@ -325,15 +349,18 @@ export default class PlaylistSearch extends Component {
             />
           </View>
 
-          <View style={{ paddingTop: 20}}>
-            <Text style={styles.subheader}>Scroll down to fine tune your search</Text>
-            <Text style={styles.subheader2}>OR</Text>
+          <View style={{ paddingTop: 30}}>
+            <Text style={styles.subheader3}>Scroll down to fine tune your search</Text>
+            <Text style={styles.subheader3}>OR</Text>
           </View>
 
+          {/* SUBMIT BUTTON TOP */}
           <View style={{justifyContent: 'center', alignItems: 'center'}}>
             <Button
               style={ styles.button }
-              containerStyle={ styles.buttonContainer } >
+              containerStyle={ styles.buttonContainer } 
+              onPress={ this.handleSubmit }
+            >
               Submit
             </Button>
             {downArrowIcon}
@@ -359,16 +386,21 @@ export default class PlaylistSearch extends Component {
           {/* DURATION */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>
-              Duration 
-              <FontAwesome5 
-                name={'question-circle'} 
-                color='#1ed760' 
-                paddingLeft={10}
-                size={20} 
-                onPress={ () => this.togglePopover("dur") } />
-            </Text> 
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Duration  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("dur"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize} 
+                  onPress={ () => this.togglePopover("dur") } />
+              </TouchableHighlight>
+            </View>
 
+            {/* Help Modal */}
             <View style={styles.modalContainer}>
               <Modal
                 transparent={true}
@@ -376,14 +408,13 @@ export default class PlaylistSearch extends Component {
                 backdropColor={'#222222'}
                 backdropOpacity={0.8}
                 animationIn={'zoomInDown'}
-                animationOut={'zoomOutUp'}
-                onRequestClose={() => {
-                  alert('Modal has been closed.');
-                }}>
+                animationOut={'zoomOutUp'} 
+              >
                 <View style={styles.modalContent}>
-
-                    <View>
-                      <Text>Duration</Text>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Duration</Text>
                       <TouchableHighlight
                         onPress={() => {
                           this.togglePopover("dur");
@@ -391,20 +422,18 @@ export default class PlaylistSearch extends Component {
                         <FontAwesome5 
                           name={'times'} 
                           color='#1ed760' 
-                          paddingLeft={10}
                           size={20} 
                           solid
                           onPress={ () => this.togglePopover("dur") } />
                       </TouchableHighlight>
                     </View>
                     
-                    <View>
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
                       <Text>The length of the track</Text>
-                    </View>
+                    </View> 
 
-                    
-                  
-                </View>
+                </View>               
               </Modal>
             </View>
 
@@ -425,7 +454,58 @@ export default class PlaylistSearch extends Component {
           {/* ACOUSTICNESS */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Acousticness { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Acousticness  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("ac"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("ac") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.acPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Acousticness</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("ac");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("ac") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        A confidence measure from 0 to 100 of whether the track is acoustic. 100 represents high confidence the track is acoustic.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="acousticness"
@@ -444,7 +524,58 @@ export default class PlaylistSearch extends Component {
           {/* DANCEABILITY */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Danceability { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Danceability  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("dnc"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("dnc") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.dncPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Danceability</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("dnc");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("dnc") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0 is least danceable and 100 is most danceable.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="danceability"
@@ -463,7 +594,61 @@ export default class PlaylistSearch extends Component {
           {/* ENERGY */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Energy { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Energy  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("en"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("en") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.enPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Energy</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("en");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("en") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        Energy is a measure from 0 to 100 and represents a perceptual measure of intensity and activity. 
+                        Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a 
+                        Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic 
+                        range, perceived loudness, timbre, onset rate, and general entropy.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="energy"
@@ -482,7 +667,60 @@ export default class PlaylistSearch extends Component {
           {/* INSTRUMENTALNESS */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Instrumentalness { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}> Instrumentalness  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("inst"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("inst") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.instPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Instrumentalness</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("inst");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("inst") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken 
+                        word tracks are clearly “vocal”. The closer the instrumentalness value is to 100, the greater likelihood the track contains no 
+                        vocal content. Values above 50 are intended to represent instrumental tracks, but confidence is higher as the value approaches 100.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="instrumentalness"
@@ -501,7 +739,60 @@ export default class PlaylistSearch extends Component {
           {/* LIVENESS */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Liveness { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Liveness  </Text> 
+              <TouchableHighlight
+                
+                onPress={() => { this.togglePopover("live"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("live") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.livePopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Liveness</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("live");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("live") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        Detects the presence of an audience in the recording. Higher liveness values represent an increased probability 
+                        that the track was performed live. A value above 80 provides strong likelihood that the track is live.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="liveness"
@@ -520,7 +811,60 @@ export default class PlaylistSearch extends Component {
           {/* LOUDNESS */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Loudness { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Loudness  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("loud"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("loud") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.loudPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Loudness</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("loud");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("loud") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and 
+                        are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary 
+                        psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="loudness"
@@ -539,7 +883,60 @@ export default class PlaylistSearch extends Component {
           {/* POPULARITY */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Popularity { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Popularity  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("pop"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("pop") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.popPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Popularity</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("pop");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("pop") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        The popularity of the track. The value will be between 0 and 100, with 100 being the most 
+                        popular. The popularity is calculated by algorithm and is based, in the most part, on the 
+                        total number of plays the track has had and how recent those plays are.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="popularity"
@@ -558,7 +955,62 @@ export default class PlaylistSearch extends Component {
           {/* SPEECHINESS */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Speechiness { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Speechiness  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("sp"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("sp") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.spPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Speechiness</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("sp");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("sp") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the 
+                        recording (e.g. talk show, audio book, poetry), the closer to 100 the attribute value. Values above 
+                        66 describe tracks that are probably made entirely of spoken words. Values between 33 and 66 
+                        describe tracks that may contain both music and speech, either in sections or layered, including 
+                        such cases as rap music. Values below 33 most likely represent music and other non-speech-like tracks.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="speechiness"
@@ -577,7 +1029,59 @@ export default class PlaylistSearch extends Component {
           {/* TEMPO */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Tempo { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Tempo  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("temp"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("temp") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.tempPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Tempo</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("temp");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("temp") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, 
+                        tempo is the speed or pace of a given piece and derives directly from the average beat duration.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="tempo"
@@ -596,7 +1100,60 @@ export default class PlaylistSearch extends Component {
           {/* VALENCE */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Valence { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Valence  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("val"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("val") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.valPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Valence</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("val");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("val") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>
+                        A measure from 0 to 100 describing the musical positiveness conveyed by a track. 
+                        Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), 
+                        while tracks with low valence sound more negative (e.g. sad, depressed, angry).
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="valence"
@@ -615,7 +1172,57 @@ export default class PlaylistSearch extends Component {
           {/* TIME SIGNATURE */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Time Signature { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.header}>Time Signature  </Text> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("sig"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("sig") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.sigPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Time Signature</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("sig");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("sig") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>An estimated overall time signature of a track. The time signature (meter) is a notational convention 
+                      to specify how many beats are in each bar (or measure).</Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <MultiSlider
               className="time_signature"
@@ -634,11 +1241,71 @@ export default class PlaylistSearch extends Component {
           {/* KEY */}
           <View style={ styles.viewStyleLight }>
 
-            <Text style={styles.header}>Key { helpIcon }</Text>
+            {/* Header, Disable CheckBox and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <CheckBox
+                title='Key'
+                checked={!this.state.keyDisabled}
+                checkedColor='#1ed760'
+                onPress={ () => this.toggleAttr("key") }
+                containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
+                textStyle={styles.header}
+      
+              />
+              
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("key"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={5}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("key") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.keyPopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Key</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("key");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("key") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>The key the track is in.  By default, this option is disabled. 
+                        Use the checkbox to choose a key. </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <Slider
               className="key"
               value={ this.state.target_key }
+              disabled={ this.state.keyDisabled }
               style={{ width: this.state.sliderLength }}         
               minimumValue={ 0 }
               maximumValue={ 11 }
@@ -652,11 +1319,71 @@ export default class PlaylistSearch extends Component {
           {/* MODE */}
           <View style={ styles.viewStyleDark }>
 
-            <Text style={styles.header}>Mode { helpIcon }</Text>
+            {/* Header and Help Icon */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+            <CheckBox
+                title='Mode'
+                checked={!this.state.modeDisabled}
+                checkedColor='#1ed760'
+                onPress={ () => this.toggleAttr("mode") }
+                containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
+                textStyle={styles.header}
+      
+              /> 
+              <TouchableHighlight
+                onPress={() => { this.togglePopover("mode"); }} >
+                <FontAwesome5 
+                  name={'question-circle'} 
+                  color='#1ed760' 
+                  paddingLeft={20}
+                  size={styles.iconSize}  
+                  onPress={ () => this.togglePopover("mode") } />
+              </TouchableHighlight>
+            </View>
+
+            {/* Help Modal */}
+            <View style={styles.modalContainer}>
+              <Modal
+                transparent={true}
+                isVisible={this.state.modePopoverOpen}
+                backdropColor={'#222222'}
+                backdropOpacity={0.8}
+                animationIn={'zoomInDown'}
+                animationOut={'zoomOutUp'} 
+              >
+                <View style={styles.modalContent}>
+                    
+                    {/* Modal Header and Close Icon */}
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
+                      <Text style={{fontSize: 18}}>Mode</Text>
+                      <TouchableHighlight
+                        onPress={() => {
+                          this.togglePopover("mode");
+                        }} >
+                        <FontAwesome5 
+                          name={'times'} 
+                          color='#1ed760' 
+                          size={20} 
+                          solid
+                          onPress={ () => this.togglePopover("mode") } />
+                      </TouchableHighlight>
+                    </View>
+                    
+                    {/* Modal Body */}
+                    <View style={{padding: 20}}>
+                      <Text>Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived.
+                      By default, this option is disabled. Use the checkbox to choose a mode.
+                      </Text>
+                    </View> 
+
+                </View>               
+              </Modal>
+            </View>
 
             <Slider
               className="mode"
               value={ this.state.target_mode }
+              disabled={ this.state.modeDisabled }
               style={{ width: this.state.sliderLength }}
               min={ 0 }
               max={ 1 }
@@ -665,6 +1392,17 @@ export default class PlaylistSearch extends Component {
 
             { this.state.target_mode === 0 ? <Text style={styles.subheader2}>Minor</Text> : <Text style={styles.subheader2}>Major</Text> }
         
+          </View>
+
+          {/* SUBMIT BUTTON BOTTOM */}
+          <View style={ styles.viewStyleLight }>
+            <Button
+              style={ styles.button }
+              containerStyle={ styles.buttonContainer } 
+              onPress={ this.handleSubmit }
+            >
+              Submit
+            </Button>
           </View>
 
         </View>

@@ -8,10 +8,12 @@
     "react-dom": "^16.4.2",
     "react-native": "0.55.4",
     "react-native-button": "^2.3.0",
+    "react-native-elements": "^0.19.1",
     "react-native-modal": "^6.5.0",
     "react-native-sectioned-multi-select": "^0.5.2",
     "react-native-vector-icons": "^5.0.0",
-    "react-navigation": "^2.11.2"
+    "react-navigation": "^2.11.2",
+    "spotify-web-api-js": "^0.24.0"
   },
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start"
