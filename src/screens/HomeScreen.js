@@ -28,6 +28,7 @@ class HomeScreen extends React.Component {
     this.createNewPlaylist = this.createNewPlaylist.bind(this);
   }
 
+  /** FUNCTION(): Get information from Spotify (access token, genres, user info) */
   _setAccessToken = async () => {
     const token = await AsyncStorage.getItem('accessToken');
     console.log("this.props.nav.token: ", token);
@@ -41,16 +42,17 @@ class HomeScreen extends React.Component {
     spotifyApi.getMe()
     .then( res => {          
       const user = res;          
-      this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres })
+      this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres.genres })
     });
   }
 
+  /** FUNCTION(): Sign out user by clearing token from storage */
   _signOutAsync = async () => {
     await AsyncStorage.clear();
     this.props.navigation.navigate('Auth');
   };
 
-  /* FUNCTION(): Make a Spotify API request for music */
+  /** FUNCTION(): Make a Spotify API request for music */
   musicSearch(searchProps) {
     // API request to fetch songs
     spotifyApi.getRecommendations(searchProps)
@@ -74,7 +76,7 @@ class HomeScreen extends React.Component {
     .catch( err => { console.log("Error getting recommendations: ", err) });
   }
 
-  /* FUNCTION(): Make a Spotify API request to create a playlist with found music */
+  /** FUNCTION(): Make a Spotify API request to create a playlist with found music */
   createNewPlaylist(song_uris) {
     const date = new Date().toLocaleString();
     // Get USER id from Spotify
@@ -113,7 +115,7 @@ class HomeScreen extends React.Component {
     .catch( err => { console.log("Error getting user details: ", err) })     
   }
 
-  /* FUNCTION(): Make a Spotify API request to save array of tracks to library */
+  /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
   saveTracks(songIds) {
     spotifyApi.addToMySavedTracks(songIds)
     .then( () => {
@@ -122,6 +124,7 @@ class HomeScreen extends React.Component {
     .catch( err => { console.log("Error saving track(s) to library: ", err) }); 
   }
 
+  /** FUNCTION(): Make a Spotify API request to play a song */
   playSong(song) {
     spotifyApi.getMyDevices()
         .then( res => {
@@ -138,7 +141,7 @@ class HomeScreen extends React.Component {
         .catch( err => { console.log("Error getting available devices: ", err) }) 
   }
 
-  /* FUNCTION(): Make a Spotify API request to save array of tracks to library */
+  /** FUNCTION(): Reset haveResults flag */
   resetHaveResults() {
     this.setState({ haveResults: false }); 
   }
@@ -176,11 +179,8 @@ class HomeScreen extends React.Component {
           containerStyle={ styles.containerStyle }       
           onPress={ () => this.props.navigation.navigate('ListSearch',
             {
-              loggedIn: this.state.loggedIn,
+              allGenres: this.state.allGenres,
               onSearchFormSubmit: searchProps => this.musicSearch(searchProps), 
-              haveResults: this.state.haveResults,
-              resetHaveResults: () => this.resetHaveResults(),
-              route_token: this.state.route_token
             })  }
         >
           Search for Music

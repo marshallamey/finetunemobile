@@ -14,7 +14,7 @@ import Button from 'react-native-button';
 import  Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
-import allGenres from '../js/genres.js';
+
 
 export default class PlaylistSearch extends Component {
   static navigationOptions = {
@@ -23,9 +23,11 @@ export default class PlaylistSearch extends Component {
 
   constructor(props) {
     super(props);
-
+    const genres = this._modifyGenres(this.props.navigation.getParam('allGenres', []));
+    console.log("GENRES AS OBJECTS: ", genres);
+    
     this.state = {
-       spotify_genres: allGenres,
+       spotify_genres: genres,
        chosen_genres: [],
 
        min_acousticness: 0.0,
@@ -78,6 +80,14 @@ export default class PlaylistSearch extends Component {
    
   }
 
+   /* FUNCTION(): Change available genres from array to object format for SectionedMultiSelect */
+  _modifyGenres(genres) {
+    const genreObject = genres.map((genre, index) => ({
+      name: genre.toUpperCase(),
+      id: index
+    }));
+    return genreObject;
+  }
 
   
    /* FUNCTION(): Change state of chosen genres */
@@ -151,8 +161,70 @@ export default class PlaylistSearch extends Component {
   }
 
   /* FUNCTION(): Send request to Spotify API once form is submitted */
-  handleSubmit(event) {
-    event.preventDefault();
+  handleSubmit() {
+   
+    console.log("CHOSEN GENRES: ", this.state.chosen_genres);
+    //Make sure genres are lower case before submitting
+    const genres = this.state.chosen_genres.map(genre => {
+      return genre.toLowerCase();
+    })
+
+    // Add selected properties to Spotify API request
+    let searchProps = { seed_genres: genres }
+
+    if(this.state.min_acousticness !== 0.0 || this.state.max_acousticness !== 1.0) {
+        searchProps.min_acousticness = this.state.min_acousticness;
+        searchProps.max_acousticness = this.state.max_acousticness;
+    }
+    if(this.state.min_danceability !== 0.0 || this.state.max_danceability !== 1.0) {
+        searchProps.min_danceability = this.state.min_danceability;
+        searchProps.max_danceability = this.state.max_danceability;
+    }
+    if(this.state.min_energy !== 0.0 || this.state.max_energy !== 1.0) {
+        searchProps.min_energy = this.state.min_energy;
+        searchProps.max_energy = this.state.max_energy;
+    }
+    if(this.state.min_instrumentalness !== 0.0 || this.state.max_instrumentalness !== 1.0) {
+        searchProps.min_instrumentalness = this.state.min_instrumentalness;
+        searchProps.max_instrumentalness = this.state.max_instrumentalness;
+    }
+    if(this.state.min_liveness !== 0.0 || this.state.max_liveness !== 1.0) {
+        searchProps.min_liveness = this.state.min_liveness;
+        searchProps.max_liveness = this.state.max_liveness;
+    }
+    if(this.state.min_loudness !== -60 || this.state.max_loudness !== 0) {
+        searchProps.min_loudness = this.state.min_loudness;
+        searchProps.max_loudness = this.state.max_loudness;
+    }
+    if(this.state.min_popularity !== 0 || this.state.max_popularity !== 100) {
+        searchProps.min_popularity = this.state.min_popularity;
+        searchProps.max_popularity = this.state.max_popularity;
+    }
+    if(this.state.min_speechiness !== 0.0 || this.state.max_speechiness !== 1.0) {
+        searchProps.min_speechiness = this.state.min_speechiness;
+        searchProps.max_speechiness = this.state.max_speechiness;
+    }
+    if(this.state.min_tempo !== 40 || this.state.max_tempo !== 300) {
+        searchProps.min_tempo = this.state.min_tempo;
+        searchProps.max_tempo = this.state.max_tempo;
+    }
+    if(this.state.min_valence !== 0.0 || this.state.max_valence !== 1.0) {
+        searchProps.min_valence = this.state.min_valence;
+        searchProps.max_valence = this.state.max_valence;
+    }
+    if(this.state.min_duration !== 60000 || this.state.max_duration !== 1800000) {
+        searchProps.min_duration = this.state.min_duration;
+        searchProps.max_duration = this.state.max_duration;
+    }
+    if(this.state.min_time_signature !== 1 || this.state.max_time_signature !== 13) {
+      searchProps.min_time_signature = this.state.min_time_signature;
+      searchProps.max_time_signature = this.state.max_time_signature;
+    }
+    if(!this.state.modeDisabled) searchProps.target_mode = this.state.target_mode;
+    if(!this.state.keyDisabled) searchProps.target_key = this.state.target_key;
+
+    console.log("(2) SENDING THESE SEARCH PROPS ==> ", searchProps);      
+    this.props.navigation.state.params.onSearchFormSubmit(searchProps);
   }
 
   render() {
@@ -293,7 +365,7 @@ export default class PlaylistSearch extends Component {
           <View style={ styles.inputView }>
             <Text style={ styles.header }>Search by Genre</Text>
             <SectionedMultiSelect
-              items={ allGenres } 
+              items={ this.state.spotify_genres } 
               uniqueKey='name'
               selectText="Select up to 5 genres"
               loadingComponent={ <Text>Sorry, no results</Text> }
@@ -359,7 +431,7 @@ export default class PlaylistSearch extends Component {
             <Button
               style={ styles.button }
               containerStyle={ styles.buttonContainer } 
-              onPress={ this.handleSubmit }
+              onPress={ () => this.handleSubmit() }
             >
               Submit
             </Button>
@@ -1399,7 +1471,7 @@ export default class PlaylistSearch extends Component {
             <Button
               style={ styles.button }
               containerStyle={ styles.buttonContainer } 
-              onPress={ this.handleSubmit }
+              onPress={ () => this.handleSubmit() }
             >
               Submit
             </Button>
