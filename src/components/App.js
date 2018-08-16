@@ -4,6 +4,8 @@ import { createSwitchNavigator, createStackNavigator } from 'react-navigation';
 import AuthLoadingScreen from '../screens/AuthLoadingScreen';
 import SignInScreen from '../screens/SignInScreen';
 import HomeScreen from '../screens/HomeScreen';
+import SongDetail from '../screens/SongDetailScreen';
+
 import Playlists from './Playlists';
 import PlaylistSearch from './PlaylistSearch';
 import PlaylistResults from './PlaylistResults';
@@ -18,7 +20,7 @@ const AppStack = createStackNavigator(
     ListSearch: PlaylistSearch,
     ListResults: PlaylistResults,
     SongSearch: SongSearch,
-    SongResult: SongResult,
+    SongDetail: SongDetail,
     Playlists: Playlists
   },
   {

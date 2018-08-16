@@ -1,6 +1,9 @@
 apply plugin: 'com.android.application'
-apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 apply from: "../../node_modules/react-native/react.gradle"
+project.ext.vectoricons = [
+        iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf' ] // Name of the font files you want to copy
+]
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
 import com.android.build.OutputFile
 
@@ -164,6 +167,8 @@ dependencies {
     implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 
     implementation "com.facebook.react:react-native:+" // From node_modules
+
+    implementation project(':react-native-svg')
 }
 
 // Run this once to be able to run the application with BUCK

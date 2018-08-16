@@ -36,7 +36,7 @@ class HomeScreen extends React.Component {
     spotifyApi.setAccessToken(token);
 
     const allGenres = await spotifyApi.getAvailableGenreSeeds()
-    console.log("RETURNED GENRES: ", allGenres);
+    //console.log("RETURNED GENRES: ", allGenres);
 
     // Get user id from Spotify
     spotifyApi.getMe()
@@ -147,6 +147,19 @@ class HomeScreen extends React.Component {
   }
 
   render() {
+    console.log("RENDERING HOMESCREEN");
+    console.log(this.state.haveResults);
+    if (this.state.haveResults === true) {
+      this.props.navigation.navigate('ListResults', {
+        songs: this.state.songs,
+        features: this.state.audio_features,
+        createNewPlaylist: this.createNewPlaylist,
+        saveTracks: this.saveTracks,
+        playSong: this.playSong,
+        haveResults: this.state.haveResults,
+        resetHaveResults: this.resetHaveResults
+      });
+    }; 
 
     const styles = {
       viewStyle: {

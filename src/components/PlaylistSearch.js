@@ -8,8 +8,8 @@ import {
   TextInput,
   TouchableHighlight,
 TouchableOpacity } from 'react-native';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { CheckBox } from 'react-native-elements'
+
+import { CheckBox, Icon } from 'react-native-elements'
 import Button from 'react-native-button';
 import  Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
@@ -24,7 +24,7 @@ export default class PlaylistSearch extends Component {
   constructor(props) {
     super(props);
     const genres = this._modifyGenres(this.props.navigation.getParam('allGenres', []));
-    console.log("GENRES AS OBJECTS: ", genres);
+    //console.log("GENRES AS OBJECTS: ", genres);
     
     this.state = {
        spotify_genres: genres,
@@ -123,8 +123,8 @@ export default class PlaylistSearch extends Component {
     this.setState(newState)
  }
 
-   /* FUNCTION(): Show Modal with more information about an attribute */
-   togglePopover(id) {
+  /* FUNCTION(): Show Modal with more information about an attribute */
+  togglePopover(id) {
     var popoverState = id+"PopoverOpen";
     console.log(popoverState);
     console.log(this.state[popoverState]);     
@@ -132,7 +132,7 @@ export default class PlaylistSearch extends Component {
     newState[popoverState] = !this.state[popoverState];
     console.log(newState);  
     this.setState(newState);
- }
+  }
 
   /* FUNCTION(): Display the proper note for key attribute */
   convertKey(note){
@@ -228,7 +228,9 @@ export default class PlaylistSearch extends Component {
   }
 
   render() {
-
+    console.log("RENDERING PLAYLISTSEARCH");
+    console.log(this.props.navigation.state.params.haveResults);
+    
     const styles = {
       
       /** VIEW CONTAINERS **/
@@ -332,16 +334,10 @@ export default class PlaylistSearch extends Component {
     };
 
     const downArrowIcon = (
-      <FontAwesome5 name={'angle-down'} color='#ffffff' size={20} solid />
+      <Icon name='arrow-drop-down' color='#ffffff' size={20} />
     );
 
-    const helpIcon = (
-      <FontAwesome5 
-        name={'question-circle'} 
-        color='#1ed760' 
-        size={14} 
-        onClick={ () => this.togglePopover("dur") }/>
-    );
+
 
     return (
       <ScrollView contentContainerStyle={ styles.containerStyle }>
@@ -463,10 +459,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Duration  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("dur"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize} 
                   onPress={ () => this.togglePopover("dur") } />
               </TouchableHighlight>
@@ -491,11 +486,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("dur");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("dur") } />
                       </TouchableHighlight>
                     </View>
@@ -531,10 +525,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Acousticness  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("ac"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("ac") } />
               </TouchableHighlight>
@@ -559,11 +552,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("ac");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("ac") } />
                       </TouchableHighlight>
                     </View>
@@ -601,10 +593,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Danceability  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("dnc"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("dnc") } />
               </TouchableHighlight>
@@ -629,11 +620,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("dnc");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("dnc") } />
                       </TouchableHighlight>
                     </View>
@@ -671,10 +661,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Energy  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("en"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("en") } />
               </TouchableHighlight>
@@ -699,11 +688,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("en");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("en") } />
                       </TouchableHighlight>
                     </View>
@@ -744,10 +732,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}> Instrumentalness  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("inst"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("inst") } />
               </TouchableHighlight>
@@ -772,11 +759,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("inst");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("inst") } />
                       </TouchableHighlight>
                     </View>
@@ -817,10 +803,9 @@ export default class PlaylistSearch extends Component {
               <TouchableHighlight
                 
                 onPress={() => { this.togglePopover("live"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("live") } />
               </TouchableHighlight>
@@ -845,11 +830,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("live");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("live") } />
                       </TouchableHighlight>
                     </View>
@@ -888,10 +872,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Loudness  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("loud"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("loud") } />
               </TouchableHighlight>
@@ -916,8 +899,8 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("loud");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='help-outline' 
                           color='#1ed760' 
                           size={20} 
                           solid
@@ -960,10 +943,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Popularity  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("pop"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("pop") } />
               </TouchableHighlight>
@@ -988,11 +970,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("pop");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("pop") } />
                       </TouchableHighlight>
                     </View>
@@ -1032,10 +1013,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Speechiness  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("sp"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("sp") } />
               </TouchableHighlight>
@@ -1060,11 +1040,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("sp");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("sp") } />
                       </TouchableHighlight>
                     </View>
@@ -1106,10 +1085,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Tempo  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("temp"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("temp") } />
               </TouchableHighlight>
@@ -1134,11 +1112,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("temp");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("temp") } />
                       </TouchableHighlight>
                     </View>
@@ -1177,10 +1154,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Valence  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("val"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("val") } />
               </TouchableHighlight>
@@ -1205,11 +1181,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("val");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("val") } />
                       </TouchableHighlight>
                     </View>
@@ -1249,10 +1224,9 @@ export default class PlaylistSearch extends Component {
               <Text style={styles.header}>Time Signature  </Text> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("sig"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={20}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("sig") } />
               </TouchableHighlight>
@@ -1277,11 +1251,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("sig");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("sig") } />
                       </TouchableHighlight>
                     </View>
@@ -1327,10 +1300,9 @@ export default class PlaylistSearch extends Component {
               
               <TouchableHighlight
                 onPress={() => { this.togglePopover("key"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
-                  paddingLeft={5}
                   size={styles.iconSize}  
                   onPress={ () => this.togglePopover("key") } />
               </TouchableHighlight>
@@ -1355,11 +1327,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("key");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("key") } />
                       </TouchableHighlight>
                     </View>
@@ -1404,8 +1375,8 @@ export default class PlaylistSearch extends Component {
               /> 
               <TouchableHighlight
                 onPress={() => { this.togglePopover("mode"); }} >
-                <FontAwesome5 
-                  name={'question-circle'} 
+                <Icon 
+                  name='help-outline' 
                   color='#1ed760' 
                   paddingLeft={20}
                   size={styles.iconSize}  
@@ -1432,11 +1403,10 @@ export default class PlaylistSearch extends Component {
                         onPress={() => {
                           this.togglePopover("mode");
                         }} >
-                        <FontAwesome5 
-                          name={'times'} 
+                        <Icon 
+                          name='close' 
                           color='#1ed760' 
                           size={20} 
-                          solid
                           onPress={ () => this.togglePopover("mode") } />
                       </TouchableHighlight>
                     </View>
