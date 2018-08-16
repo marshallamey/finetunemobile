@@ -1,17 +1,32 @@
 import React, { Component } from 'react';
-import { ScrollView, Image, View, Text, Button } from 'react-native';
-import { ListItem } from 'react-native-elements'
+import { ScrollView, Image, View, Text } from 'react-native';
+import { ListItem, FormLabel, FormInput, Button } from 'react-native-elements'
 import SongResult from './SongResult';
 
-export default class PlaylistResults extends React.Component {
+class PlaylistResults extends Component {
+
+  /** CONSTRUCTOR() */
+  constructor(props) {
+    super(props);
+
+    this.state = {
+        playlistName: ''          
+    };  
+  }
+
+  /* FUNCTION(): Change state of playlistName */
+  onNameChange(name) { 
+    console.log("Playlist Name: ", name);  
+    this.setState({ playlistName: name });        
+ }
 
   render() {
 
     const { params } = this.props.navigation.state;
     const songs = params.songs;
     const features = params.features;
-    console.log(songs);
-    console.log(features);
+    //console.log(songs);
+    //console.log(features);
     
 
     const styles = {
@@ -139,13 +154,20 @@ export default class PlaylistResults extends React.Component {
     const song_uris = songs.map( song => {   
       return song.uri
     })
-    console.log("(6) SONGURIS TO CREATE PLAYLIST: ", song_uris);  
+    //console.log("(6) SONGURIS TO CREATE PLAYLIST: ", song_uris);  
 
 
     return (     
       <ScrollView >
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          <Text>Playlist Results Page</Text>
+          <Text style={styles.title}>Playlist Results Page</Text>
+          <FormLabel>Name This Playlist</FormLabel>
+          <FormInput onChangeText={(event) => this.onNameChange(event)}/>
+          <Button
+            raised
+            icon={{name: 'save-alt'}}
+            title='SAVE THIS PLAYLIST' 
+            onPress={() => params.createNewPlaylist(song_uris, this.state.playlistName)} />
         </View>
 
         <View>
@@ -157,3 +179,5 @@ export default class PlaylistResults extends React.Component {
     );
   }
 }
+
+export default PlaylistResults;

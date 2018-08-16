@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, AsyncStorage } from 'react-native';
 import Button from 'react-native-button';
-import SpotifyWebApi from 'spotify-web-api-js';
+import SpotifyWebApi from 'spotify-web-api-node';
 import seed_data from '../js/seed';
 const spotifyApi = new SpotifyWebApi();
 
@@ -10,6 +10,7 @@ class HomeScreen extends React.Component {
   /** CONSTRUCTOR() */
   constructor(props) {
     super(props);
+
 
     this.state = {
         access_token: "",
@@ -42,7 +43,7 @@ class HomeScreen extends React.Component {
     spotifyApi.getMe()
     .then( res => {          
       const user = res;          
-      this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres.genres })
+      this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres.body.genres })
     });
   }
 
@@ -57,19 +58,19 @@ class HomeScreen extends React.Component {
     // API request to fetch songs
     spotifyApi.getRecommendations(searchProps)
     .then( songs => {
-      console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.tracks);
+      //console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.body.tracks);
       
       // Get the IDs of all songs returned     
-      let songIds = songs.tracks.map( song => { return song.id });
-      console.log("(4) IDS OF SONGS: ", songIds);
+      let songIds = songs.body.tracks.map( song => { return song.id });
+      //console.log("(4) IDS OF SONGS: ", songIds);
 
       // API request to fetch audio features for each song 
       spotifyApi.getAudioFeaturesForTracks(songIds)
       .then( res => {              
-        console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.audio_features);
+        //console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.body.audio_features);
         
         //Update state ONCE with songs and features
-        this.setState({ songs: songs.tracks, audio_features: res.audio_features, haveResults: true });      
+        this.setState({ songs: songs.body.tracks, audio_features: res.body.audio_features, haveResults: true });      
       })
       .catch( err => { console.log("Error getting audio features: ", err) })                
     })
@@ -77,42 +78,49 @@ class HomeScreen extends React.Component {
   }
 
   /** FUNCTION(): Make a Spotify API request to create a playlist with found music */
-  createNewPlaylist(song_uris) {
+  createNewPlaylist(song_uris, name) {
+    console.log('Sending uris => ', song_uris);
+    console.log('Sending playlist name => ', name);
+    
+    let playlistName = '';
     const date = new Date().toLocaleString();
+    if (name) playlistName = name;
+    else playlistName = "FineTune Playlist " + date;
+    console.log('Sending playlist name => ', playlistName);
     // Get USER id from Spotify
     spotifyApi.getMe()
     .then( user => {
-        console.log("CURRENT USER ID: ", user.id);        
+        console.log("CURRENT USER ID: ", user.body.id);        
         
         // Create a Spotify playlist
-        spotifyApi.createPlaylist(user.id, { name: "FineTune Playlist " + date })
+        spotifyApi.createPlaylist(user.body.id, playlistName )
         .then( playlist => {
-
+          console.log('RETURNED PLAYLIST: ',playlist);
+          
           // Add the tracks to the playlist
-          spotifyApi.addTracksToPlaylist(user.id, playlist.id, song_uris)
+          spotifyApi.addTracksToPlaylist(user.body.id, playlist.body.id, song_uris)
           .then( onCreated => {
               console.log(onCreated);
               
               spotifyApi.getMyDevices()
               .then( res => {
-                console.log("AVAILABLE DEVICES: ", res.devices);
-                this.listCreatedToast();
-                if ( res.devices.length === 0 ) {
+                console.log("AVAILABLE DEVICES: ", res.body.devices);
+                if ( res.body.devices.length === 0 ) {
                     // Open playlist on the web if no available device
                     window.open( playlist.external_urls.spotify, '_blank');
                 } else {
                     // Start the playlist on the first available device
-                    spotifyApi.play({ device_id: res.devices[0].id, context_uri: playlist.uri })
-                    .catch( err => { console.log("Error playing playlist: ", err) })  
+                    spotifyApi.play({ device_id: res.body.devices[0].id, context_uri: playlist.body.uri })
+                    .catch( err => { console.log("Error playing playlist: ", err.message) })  
                 }                          
               })
-              .catch( err => { console.log("Error getting available devices: ", err) }) 
+              .catch( err => { console.log("Error getting available devices: ", err.message) }) 
           })
-          .catch( err => { console.log("Error adding tracks to playlist: ", err) }) 
+          .catch( err => { console.log("Error adding tracks to playlist: ", err.message) }) 
         })
-        .catch( err => { console.log("Error creating playlist: ", err) }) 
+        .catch( err => { console.log("Error creating playlist: ", err.message) }) 
     })
-    .catch( err => { console.log("Error getting user details: ", err) })     
+    .catch( err => { console.log("Error getting user details: ", err.message) })     
   }
 
   /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
