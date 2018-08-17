@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dimensions, ScrollView, Text, Image, View, TouchableHighlight } from 'react-native';
+import { Dimensions, ScrollView, Text, Image, View, TouchableHighlight, NativeModules } from 'react-native';
 import { Card, List, ListItem, Button, Icon } from 'react-native-elements';
 import  Modal from 'react-native-modal';
 
@@ -103,6 +103,8 @@ class Song extends Component {
     const { params } = this.props.navigation.state;
     const song = params.song;
     const features = params.features;
+    const playSong = params.playSong;
+
     let mode;
       if (features.mode === 0 ) mode = ' Minor';
       else mode = ' Major';
@@ -170,6 +172,7 @@ class Song extends Component {
             backgroundColor='#ff2525'
             fontFamily='Lato'
             containerViewStyle={styles.buttonContainer}
+            onPress={() => params.saveTracks([song.id]) }
             title='SAVE TO LIBRARY' />
 
           {/* List of Song Details */}
@@ -178,7 +181,8 @@ class Song extends Component {
               title={ song.name }
               titleStyle={styles.title}
               subtitle='Track'
-              hideChevron={true}
+              rightIcon={{name: 'play', type: 'font-awesome', color: '#222222'}}
+              onPressRightIcon={() => NativeModules.SpotifyAuth.playSong(song.uri)}
             />
             <ListItem
               title={ song.artists[0].name }

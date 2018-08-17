@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, AsyncStorage } from 'react-native';
+import { View, AsyncStorage, Linking, NativeModules } from 'react-native';
 import Button from 'react-native-button';
 import SpotifyWebApi from 'spotify-web-api-node';
 import seed_data from '../js/seed';
 const spotifyApi = new SpotifyWebApi();
+
 
 class HomeScreen extends React.Component {
 
@@ -14,17 +15,25 @@ class HomeScreen extends React.Component {
 
     this.state = {
         access_token: "",
-        refresh_token: "",
+        tokenExpires: "",
         loggedIn: false,
-        user: {id: ""}, 
-        songs: [],
+        user: {id: ""},
         allGenres: [],
+
+        haveResults: false, 
+        songs: [],       
         audio_features: seed_data,
-        haveResults: false          
+
+        playing: false,
+        trackName: "Track Name",
+        artistName: "Artist Name",
+        albumName: "Album Name",    
+        position: 0,
+        duration: 0
+                 
     };  
 
-    this._setAccessToken();
-      
+    this._setAccessToken();     
     this.saveTracks = this.saveTracks.bind(this);
     this.createNewPlaylist = this.createNewPlaylist.bind(this);
   }
@@ -42,7 +51,9 @@ class HomeScreen extends React.Component {
     // Get user id from Spotify
     spotifyApi.getMe()
     .then( res => {          
-      const user = res;          
+      const user = res.body; 
+      console.log("CURRENT USER: ", user);
+               
       this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres.body.genres })
     });
   }
@@ -99,22 +110,8 @@ class HomeScreen extends React.Component {
           
           // Add the tracks to the playlist
           spotifyApi.addTracksToPlaylist(user.body.id, playlist.body.id, song_uris)
-          .then( onCreated => {
-              console.log(onCreated);
-              
-              spotifyApi.getMyDevices()
-              .then( res => {
-                console.log("AVAILABLE DEVICES: ", res.body.devices);
-                if ( res.body.devices.length === 0 ) {
-                    // Open playlist on the web if no available device
-                    window.open( playlist.external_urls.spotify, '_blank');
-                } else {
-                    // Start the playlist on the first available device
-                    spotifyApi.play({ device_id: res.body.devices[0].id, context_uri: playlist.body.uri })
-                    .catch( err => { console.log("Error playing playlist: ", err.message) })  
-                }                          
-              })
-              .catch( err => { console.log("Error getting available devices: ", err.message) }) 
+          .then( newPlaylist => {
+              console.log("PLAYLIST SAVED: ", newPlaylist); 
           })
           .catch( err => { console.log("Error adding tracks to playlist: ", err.message) }) 
         })
@@ -123,36 +120,49 @@ class HomeScreen extends React.Component {
     .catch( err => { console.log("Error getting user details: ", err.message) })     
   }
 
+
   /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
   saveTracks(songIds) {
     spotifyApi.addToMySavedTracks(songIds)
     .then( () => {
-        this.trackSavedToast();   
+      console.log("Track Saved", songIds);        
     })
     .catch( err => { console.log("Error saving track(s) to library: ", err) }); 
   }
 
+
   /** FUNCTION(): Make a Spotify API request to play a song */
   playSong(song) {
-    spotifyApi.getMyDevices()
-        .then( res => {
-          console.log("AVAILABLE DEVICES: ", res.devices);
-          if ( res.devices.length === 0 ) {
-              // Open playlist on the web if no available device
-              window.open( song.external_urls.spotify, '_blank');
-          } else {
-              // Start the playlist on the first available device
-              spotifyApi.play({ device_id: res.devices[0].id, context_uri: song.uri })
-              .catch( err => { console.log("Error playing playlist: ", err) })  
-          }                          
-        })
-        .catch( err => { console.log("Error getting available devices: ", err) }) 
+    NativeModules.SpotifyAuth.playSong(song.uri);
+    // spotifyApi.getMyDevices()
+    //     .then( res => {
+    //       console.log("AVAILABLE DEVICES: ", res.body.devices);
+    //       if ( res.body.devices.length === 0 ) {
+    //           // Open playlist on the web if no available device
+    //           Linking.openURL(song.uri+'//app');
+    //           spotifyApi.play({ context_uri: song.uri })
+    //           .catch( err => { console.log("Error playing song: ", err) })
+             
+    //       } else {
+    //           // Start the playlist on the first available device
+    //           spotifyApi.play({ uris: [song.uri] })
+    //           .catch( err => { console.log("Error playing playlist: ", err) })  
+    //       }                          
+    //     })
+    //     .catch( err => { console.log("Error getting available devices: ", err) }) 
   }
+
+
+  pauseSong(song) {
+    NativeModules.SpotifyAuth.pause();
+  }
+
 
   /** FUNCTION(): Reset haveResults flag */
   resetHaveResults() {
     this.setState({ haveResults: false }); 
   }
+
 
   render() {
     console.log("RENDERING HOMESCREEN");
@@ -210,25 +220,25 @@ class HomeScreen extends React.Component {
         <Button
           style={ styles.btnStyle }
           containerStyle={ styles.containerStyle }
-          onPress={ () => this.props.navigation.navigate('SongSearch') }
-        >
-          Get Song Details
-        </Button>
-
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }
-          onPress={ () => this.props.navigation.navigate('Playlists') }
-        >
-          See Playlists
-        </Button>
-
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }
           onPress={ this._signOutAsync }
         >
           Sign Out
+        </Button>
+
+        <Button
+          style={ styles.btnStyle }
+          containerStyle={ styles.containerStyle }
+          onPress={ () => NativeModules.SpotifyAuth.pause() }
+        >
+          Pause
+        </Button>
+
+        <Button
+          style={ styles.btnStyle }
+          containerStyle={ styles.containerStyle }
+          onPress={ () => NativeModules.SpotifyAuth.playSample() }
+        >
+          Cool Blue
         </Button>
 
       </View>

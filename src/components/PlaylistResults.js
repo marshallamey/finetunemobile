@@ -165,7 +165,7 @@ class PlaylistResults extends Component {
           <FormInput onChangeText={(event) => this.onNameChange(event)}/>
           <Button
             raised
-            icon={{name: 'save-alt'}}
+            icon={{name: 'arrow-circle-o-down', type: 'font-awesome'}}
             title='SAVE THIS PLAYLIST' 
             onPress={() => params.createNewPlaylist(song_uris, this.state.playlistName)} />
         </View>

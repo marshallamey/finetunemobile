@@ -36,9 +36,30 @@ public class SpotifyModule extends ReactContextBaseJavaModule {
 
     Activity activity = getCurrentActivity();
     if (activity != null) {
-      Intent intent = new Intent(activity, SignInActivity.class);
+      Intent intent = new Intent(activity, MainActivity.class);
       activity.startActivity(intent);
     }
+  }
+
+   // Play Cool Blue In FineTune
+  @ReactMethod
+  static void playSample() {
+    Log.d("SpotifyModule", "Trying to play cool blue");
+    MainActivity.mPlayer.playUri(null, "spotify:track:0Lbe98RKWwBbu1sipPSa4n", 0, 0);
+  }
+  
+  // Play a song in FineTune
+  @ReactMethod
+  static void playSong(String song_uri) {
+    Log.d("SpotifyModule", "Playing: " + song_uri);
+    MainActivity.mPlayer.playUri(null, song_uri, 0, 0);
+  }
+
+  // Pause a song in FineTune
+  @ReactMethod
+  static void pause() {
+    Log.d("SpotifyModule", "Trying to pause...");
+    MainActivity.mPlayer.pause(null);
   }
 
   // Send ACCESS TOKEN to React Native
