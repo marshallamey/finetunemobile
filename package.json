@@ -15,6 +15,7 @@
     "react-native-sectioned-multi-select": "^0.5.2",
     "react-native-spotify-web-api": "^0.1.0",
     "react-native-svg": "^6.5.2",
+    "react-native-swipeable": "^0.6.0",
     "react-native-vector-icons": "^5.0.0",
     "react-navigation": "^2.11.2",
     "spotify-web-api-js": "^0.24.0",

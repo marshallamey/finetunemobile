@@ -133,6 +133,12 @@ export default class HomeScreen extends Component {
     } catch (error) {
       console.log("FINETUNE APP:: Error saving expiresIn to Async");   
     } 
+    try {
+      await AsyncStorage.removeItem('accessToken');            
+      console.log("FINETUNE APP:: Removed accessToken from Async ==> ", accessToken);
+    } catch (error) {
+      console.log("FINETUNE APP:: Error removing accessToken from Async");   
+    } 
     // Clear old token from Spotify SDK and start oAuth process
     NativeModules.SpotifyAuth.clearAccessToken();           
     NativeModules.SpotifyAuth.authenticateUser();
