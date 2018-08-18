@@ -33,7 +33,9 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
     private static final String CLIENT_ID = "dc0873f2467341dd9340d038f6234843";
     private static final String REDIRECT_URI = "finetunespotify://callback";
     protected static Player mPlayer;
-    private static final int REQUEST_CODE = 1337;
+    protected static String accessToken;
+    protected static int expiresIn;
+    private static final int REQUEST_CODE = 7593026;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +55,14 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
         // the string in AppRegistry.registerComponent() in index.js
         mReactRootView.startReactApplication(mReactInstanceManager, "finetunemobile", null);
 
-        setContentView(mReactRootView);
 
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-read-private", "streaming"});
         AuthenticationRequest request = builder.build();
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+
+setContentView(mReactRootView);
+        
     }
 
         @Override
@@ -69,7 +73,11 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
-                SpotifyModule.setAccessToken(response.getAccessToken());
+                accessToken = response.getAccessToken();
+                expiresIn = response.getExpiresIn();
+
+                Log.d("MainActivity", "Saving accessToken ==> " + accessToken);
+                Log.d("MainActivity", "Saving expiresIn ==> " + expiresIn);
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
@@ -85,6 +93,7 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
                 });
             }
         }
+        
     }
 
     @Override

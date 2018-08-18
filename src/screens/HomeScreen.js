@@ -1,17 +1,17 @@
-import React from 'react';
-import { View, AsyncStorage, Linking, NativeModules } from 'react-native';
+import React, { Component } from 'react';
+import { View, AsyncStorage, Image, NativeModules } from 'react-native';
 import Button from 'react-native-button';
 import SpotifyWebApi from 'spotify-web-api-node';
 import seed_data from '../js/seed';
 const spotifyApi = new SpotifyWebApi();
+let accessToken = "";
+let expiresIn = "";
 
-
-class HomeScreen extends React.Component {
+export default class HomeScreen extends Component {
 
   /** CONSTRUCTOR() */
   constructor(props) {
     super(props);
-
 
     this.state = {
         access_token: "",
@@ -29,40 +29,122 @@ class HomeScreen extends React.Component {
         artistName: "Artist Name",
         albumName: "Album Name",    
         position: 0,
-        duration: 0
-                 
+        duration: 0              
     };  
-
-    this._setAccessToken();     
+    this._initializeApp();
+ 
     this.saveTracks = this.saveTracks.bind(this);
     this.createNewPlaylist = this.createNewPlaylist.bind(this);
   }
 
-  /** FUNCTION(): Get information from Spotify (access token, genres, user info) */
-  _setAccessToken = async () => {
-    const token = await AsyncStorage.getItem('accessToken');
-    console.log("this.props.nav.token: ", token);
+  _initializeApp = async () => {
+    console.log("FINETUNEAPP:: Starting app && authenticating USER");
+    
+    /* The Spotify SDK logs in the USER before the app starts
+    *  Spotify provides an accessToken that is valid for one hour 
+    */
 
-    spotifyApi.setAccessToken(token);
+    // If there is no accessToken in state
+    if (!this.state.accessToken) {
+      console.log("FINETUNE APP:: No access token in state. Checking AsyncStorage...");   
+      const currentTime = new Date().getTime();
+      
+      
+      // Check AsyncStorage to see if previous token was saved
+      accessToken = await AsyncStorage.getItem('accessToken');
+      expiresIn = await AsyncStorage.getItem('expiresIn');
 
-    const allGenres = await spotifyApi.getAvailableGenreSeeds()
-    //console.log("RETURNED GENRES: ", allGenres);
+      // If no accessToken saved in AsyncStorage, 
+      // fetch previous accessToken from Spotify SDK
+      if(!accessToken) {
+        console.log("FINETUNE APP:: No access token in phone storage.  Checking Spotify SDK...");        
+        accessToken = await NativeModules.SpotifyAuth.getAccessToken();
+        
+        // If no accessToken in state, AsyncStorage, or Spotify SDK
+        // OR if token from Spotify SDK is expired
+        // Send USER to authentication flow
+        if(!accessToken || currentTime >= parseInt(expiresIn)) {
+          console.log("FINETUNE APP:: No access token found or expired token.  Sending USER to Spotify for authentication."); 
+          this._authenticateUser(); 
+          return;
+        } else {
+          //If we get accessToken from Spotify SDK, save it to storage
+          console.log("FINETUNE APP:: Retrieved token from Spotify SDK");          
+          try {
+            await AsyncStorage.setItem('accessToken', accessToken);            
+            console.log("FINETUNE APP:: Saved accessToken to Async ==> ", accessToken);
+          } catch (error) {
+            console.log("FINETUNE APP:: Error saving accessToken to Async");   
+          }
+        }       
+      } else {
+        // If we get accessToken from storage, check if it is expired
+        // If so, send USER to authentication flow
+        console.log("FINETUNE APP:: Retrieved token from AsyncStorage");
+        if(currentTime >= parseInt(expiresIn)) {
+          console.log("Expired token.  Sending USER to Spotify for authentication."); 
+          this._authenticateUser(); 
+          return;
+        }
+      }
+      
+      // If token found and not expired, display information
+      console.log("ACCESS TOKEN FROM SDK ==> ", accessToken);
+      console.log("TOKEN EXPIRES ==> ", expiresIn);
+      console.log("CURRENT TIME ==> ", currentTime);
+      console.log("TIME LEFT ==> ", expiresIn - currentTime);
+      
+      // Initialize Spotify Web API with accessToken
+      spotifyApi.setAccessToken(accessToken);
 
-    // Get user id from Spotify
-    spotifyApi.getMe()
-    .then( res => {          
-      const user = res.body; 
-      console.log("CURRENT USER: ", user);
-               
-      this.setState({ access_token: token, user: user, loggedIn: true, allGenres: allGenres.body.genres })
-    });
-  }
+      // Get available genres from Spotify
+      const genres = await spotifyApi.getAvailableGenreSeeds();
+      const allGenres = genres.body.genres;
+      //console.log("RETURNED GENRES: ", allGenres);
 
-  /** FUNCTION(): Sign out user by clearing token from storage */
-  _signOutAsync = async () => {
-    await AsyncStorage.clear();
-    this.props.navigation.navigate('Auth');
+      // Get USER info from Spotify
+      spotifyApi.getMe()
+      .then( res => {          
+        const user = res.body; 
+        //console.log("CURRENT USER: ", user);
+          
+        //Update state with all information
+        this.setState({ accessToken, expiresIn, user, allGenres })
+      });
+
+    } else {
+      // There is already an accessToken in state
+      // Check if it is expired
+      // If so, send user to authentication flow
+      if ( currentTime >= expiresIn) { 
+        console.log("FINETUNE APP:: Access token is expired!  Getting new token..."); 
+        this._authenticateUser();
+      }
+    }
   };
+
+  /** FUNCTION(): Clear details and send USER to authentication flow */
+  _authenticateUser = async () => {
+    // Set and save new expiration time for the coming token
+    expiresIn = new Date().getTime() + 3600000;  
+    try {
+      await AsyncStorage.setItem('expiresIn', JSON.stringify(expiresIn));            
+      console.log("FINETUNE APP:: Saved new expiresIn to Async ==> ", expiresIn);
+    } catch (error) {
+      console.log("FINETUNE APP:: Error saving expiresIn to Async");   
+    } 
+    // Clear old token from Spotify SDK and start oAuth process
+    NativeModules.SpotifyAuth.clearAccessToken();           
+    NativeModules.SpotifyAuth.authenticateUser();
+  };
+
+
+  /** FUNCTION(): Sign out user by clearing token from storage and Spotify SDK */
+  _signOutUser = async () => {
+    await AsyncStorage.clear();
+    NativeModules.SpotifyAuth.clearAccessToken();
+  };
+
 
   /** FUNCTION(): Make a Spotify API request for music */
   musicSearch(searchProps) {
@@ -152,17 +234,24 @@ class HomeScreen extends React.Component {
     //     .catch( err => { console.log("Error getting available devices: ", err) }) 
   }
 
-
+  /** FUNCTION(): Make a Spotify API request to pause a song */
   pauseSong(song) {
     NativeModules.SpotifyAuth.pause();
   }
-
 
   /** FUNCTION(): Reset haveResults flag */
   resetHaveResults() {
     this.setState({ haveResults: false }); 
   }
 
+  /** Header Config */
+  static navigationOptions = {
+    title: 'FineTune Pro',
+    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+    headerStyle: { backgroundColor: '#222222' },
+    headerTintColor: '#ffffff',
+    
+  };
 
   render() {
     console.log("RENDERING HOMESCREEN");
@@ -179,72 +268,82 @@ class HomeScreen extends React.Component {
       });
     }; 
 
-    const styles = {
-      viewStyle: {
-        backgroundColor: '#000000',
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignSelf: 'stretch',
-        flex: 1
-      },
-      btnStyle: {
-        color: '#ffffff',      
-        fontSize: 20
-      },
-      containerStyle: { 
-        padding: 10, 
-        marginBottom: 20,
-        height: 45, 
-        overflow: 'hidden', 
-        borderRadius: 4, 
-        backgroundColor: '#333333' 
-      }
-    };
-
     return (
-
+      
       <View style={ styles.viewStyle }>
+        {/* FINETUNE LOGO */}
+        <View style={ styles.logo }>
+          <Image 
+            source={require('../img/finetune-banner-logo.jpg')}
+            style={{height: '100%'}} 
+            resizeMode='contain' />
+        </View>
 
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }       
-          onPress={ () => this.props.navigation.navigate('ListSearch',
-            {
-              allGenres: this.state.allGenres,
-              onSearchFormSubmit: searchProps => this.musicSearch(searchProps), 
-            })  }
-        >
-          Search for Music
-        </Button>
+        {/* MENU BUTTONS */}
+        <View style={ styles.btnMenu }>    
 
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }
-          onPress={ this._signOutAsync }
-        >
-          Sign Out
-        </Button>
+          <Button
+            style={ styles.btnStyle }
+            containerStyle={ styles.containerStyle }       
+            onPress={ () => this.props.navigation.navigate('ListSearch',
+              {
+                allGenres: this.state.allGenres,
+                onSearchFormSubmit: searchProps => this.musicSearch(searchProps), 
+              })  }
+          >
+            Search for Music
+          </Button>
 
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }
-          onPress={ () => NativeModules.SpotifyAuth.pause() }
-        >
-          Pause
-        </Button>
+          <Button
+            style={ styles.btnStyle }
+            containerStyle={ styles.containerStyle }
+            onPress={ this._signOutUser }
+          >
+            View FineTune Playlists
+          </Button>
 
-        <Button
-          style={ styles.btnStyle }
-          containerStyle={ styles.containerStyle }
-          onPress={ () => NativeModules.SpotifyAuth.playSample() }
-        >
-          Cool Blue
-        </Button>
+          <Button
+            style={ styles.btnStyle }
+            containerStyle={ styles.containerStyle }
+            onPress={ () => NativeModules.SpotifyAuth.pause() }
+          >
+            Look Up Song Details
+          </Button>
+        </View>
 
       </View>
-
     );
   }
 }
 
-export default HomeScreen;
+const styles = {
+  viewStyle: {
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flex: 1
+  },
+  logo: {
+    flex: 1, 
+    padding: 20
+  },
+  btnMenu: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'stretch'
+  }, 
+  btnStyle: {
+    color: '#ffffff',      
+    fontSize: 20
+  },
+  containerStyle: { 
+    padding: 15, 
+    width: 250,
+    marginBottom: 30,
+    overflow: 'hidden', 
+    borderRadius: 40, 
+    backgroundColor: '#ff2525' 
+  }
+};

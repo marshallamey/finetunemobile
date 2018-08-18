@@ -16,8 +16,8 @@ import javax.annotation.Nullable;
 
 public class SpotifyModule extends ReactContextBaseJavaModule {
 
-  private static String access_token;
-  // private static String refresh_token;
+
+
 
   SpotifyModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -65,17 +65,21 @@ public class SpotifyModule extends ReactContextBaseJavaModule {
   // Send ACCESS TOKEN to React Native
   @ReactMethod
   static void getAccessToken(@Nonnull Promise promise) {
-    promise.resolve(access_token);
+    promise.resolve(MainActivity.accessToken);
   }
 
-  // Retrieve ACCESS TOKEN from SignInActivity
-  static void setAccessToken(String token) {
-    access_token = token;
+    // Send ACCESS TOKEN to React Native
+  @ReactMethod
+  static void getExpiresIn(@Nonnull Promise promise) {
+    promise.resolve(MainActivity.expiresIn);
   }
 
-  // static void setRefreshToken(String token) {
-  //   refresh_token = token;
-  // }
+   // Send ACCESS TOKEN to React Native
+  @ReactMethod
+  static void clearAccessToken() {
+    MainActivity.accessToken = "";
+  }
+
 
 }
 

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { ScrollView, Image, View, Text } from 'react-native';
 import { ListItem, FormLabel, FormInput, Button } from 'react-native-elements'
+import MusicPlayer from './MusicPlayer';
 import SongResult from './SongResult';
 
 class PlaylistResults extends Component {
@@ -10,7 +11,9 @@ class PlaylistResults extends Component {
     super(props);
 
     this.state = {
-        playlistName: ''          
+        playlistName: '',
+        playing: false,
+        position: 0         
     };  
   }
 
@@ -19,6 +22,15 @@ class PlaylistResults extends Component {
     console.log("Playlist Name: ", name);  
     this.setState({ playlistName: name });        
  }
+
+   /** Header Config */
+   static navigationOptions = {
+    title: 'Search Results',
+    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+    headerStyle: { backgroundColor: '#222222' },
+    headerTintColor: '#ffffff',
+    headerRight: (<View></View>)  
+  };
 
   render() {
 
@@ -160,7 +172,7 @@ class PlaylistResults extends Component {
     return (     
       <ScrollView >
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={styles.title}>Playlist Results Page</Text>
+          <MusicPlayer playing={this.state.playing} song={songs[0]}/>
           <FormLabel>Name This Playlist</FormLabel>
           <FormInput onChangeText={(event) => this.onNameChange(event)}/>
           <Button

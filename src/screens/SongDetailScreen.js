@@ -18,10 +18,16 @@ class Song extends Component {
     //console.log(features);
   }
 
-  //Header
-  static navigationOptions = {
-    title: 'Song Details',
-  };
+    /** Header Config */
+    static navigationOptions = {
+      title: 'Song Details',
+      headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+      headerStyle: { backgroundColor: '#222222' },
+      headerTintColor: '#ffffff',
+      headerRight: (<View></View>)
+      
+    };
+
  
 
   // Display the proper time for duration attribute

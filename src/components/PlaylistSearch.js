@@ -17,8 +17,13 @@ import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 
 
 export default class PlaylistSearch extends Component {
-  static navigationOptions = {
+   /** Header Config */
+   static navigationOptions = {
     title: 'FineTune Search',
+    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+    headerStyle: { backgroundColor: '#222222' },
+    headerTintColor: '#ffffff',
+    headerRight: (<View></View>)
   };
 
   constructor(props) {
@@ -391,7 +396,7 @@ export default class PlaylistSearch extends Component {
             />
           </View>
 
-          {/* SEARCH BY ARTIST */}
+          {/* SEARCH BY ARTIST 
           <View style={styles.inputView}>
           <Text style={styles.header}>Search by Artist</Text>
             <TextInput
@@ -402,9 +407,9 @@ export default class PlaylistSearch extends Component {
               autoCorrect={false}
               onChangeText={(text) => this.setState({text})}
             />
-          </View>
+          </View> */}
           
-          {/* SEARCH BY ALBUM */}
+          {/* SEARCH BY ALBUM 
           <View style={styles.inputView}>
           <Text style={styles.header}>Search by Album</Text>
             <TextInput
@@ -415,7 +420,7 @@ export default class PlaylistSearch extends Component {
               autoCorrect={false}
               onChangeText={(text) => this.setState({text})}
             />
-          </View>
+          </View> */}
 
           <View style={{ paddingTop: 30}}>
             <Text style={styles.subheader3}>Scroll down to fine tune your search</Text>
