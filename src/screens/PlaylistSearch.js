@@ -68,8 +68,10 @@ export default class PlaylistSearch extends Component {
   
    /* FUNCTION(): Change state of chosen genres */
    onSelectedItemsChange(genres) { 
-    console.log("CHOSEN GENRES: ", genres);  
-    this.setState({ chosen_genres: genres });        
+    console.log("CHOSEN GENRES: ", genres);
+    if(genres.length <= 5) {  
+      this.setState({ chosen_genres: genres });   
+    }     
  }
 
   /* FUNCTION: Change state of song attributes when user moves any MultiSlider */
@@ -142,7 +144,7 @@ export default class PlaylistSearch extends Component {
     })
 
     // Add selected properties to Spotify API request
-    let searchProps = { seed_genres: genres, limit: 1 }
+    let searchProps = { seed_genres: genres }
 
     if(this.state.min_acousticness !== 0.0 || this.state.max_acousticness !== 1.0) {
         searchProps.min_acousticness = this.state.min_acousticness;

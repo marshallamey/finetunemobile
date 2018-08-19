@@ -12,9 +12,7 @@ export default class PlaylistResults extends Component {
     super(props);
 
     this.state = {
-        playlistName: '',
-        playing: false,
-        position: 0         
+        playlistName: '' 
     };  
   }
 
@@ -51,13 +49,14 @@ export default class PlaylistResults extends Component {
      * Each track is a property of the song component */
      
     let tracks = '';
-    console.log("results  ", songs);
+    let albumCover = '';
+    
     
     if(songs.length) { 
       tracks = songs.map((song, index) => {
       
       //If no album cover, use finetune logo
-      let albumCover = song.album.images[1].url ? 
+      albumCover = song.album.images[1].url ? 
         song.album.images[1].url 
       : 
         <Image 
@@ -87,6 +86,7 @@ export default class PlaylistResults extends Component {
           title={ song.name }
           subtitle={ song.artists[0].name } 
           rightTitle='Details'
+          onPress={ () => params.playSong(index)}
           onPressRightIcon={ () => this.props.navigation.navigate('SongDetail', {
             song: song, 
             features: features[index],
@@ -116,7 +116,20 @@ export default class PlaylistResults extends Component {
       <ScrollView >
 
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          <MusicPlayer playing={this.state.playing} song={songs[0]} />
+          <MusicPlayer 
+            pauseSong={params.pauseSong}
+            playSong={params.playSong}
+            pauseSong={params.pauseSong}
+            resumeSong={params.resumeSong}
+            playNext={params.playNext}
+            playPrevious={params.playPrevious}
+            playing={params.playing}
+            artistName={params.artistName}
+            albumName={params.albumName}
+            trackName={params.trackName}
+            albumCover={params.albumCover}
+            position={params.position }
+             />
           <SavePlaylistForm songs={songs} createNewPlaylist={params.createNewPlaylist} />
         </View>
 

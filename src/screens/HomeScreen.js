@@ -24,17 +24,23 @@ export default class HomeScreen extends Component {
         audio_features: seed_data,
 
         playing: false,
-        trackName: "Track Name",
-        artistName: "Artist Name",
-        albumName: "Album Name",    
+        trackName: "",
+        artistName: "",
+        albumName: "",
+        albumCover: "http://res.cloudinary.com/skooliesocial/image/upload/v1533356615/finetune-square-border-logo_e4hwdv.jpg",    
         position: 0,
-        duration: 0              
+        index: 0             
     };  
     this._initializeApp();
  
     this.saveTracks = this.saveTracks.bind(this);
     this.createNewPlaylist = this.createNewPlaylist.bind(this);
     this.deleteSong = this.deleteSong.bind(this);
+    this.playSong = this.playSong.bind(this);
+    this.pauseSong = this.pauseSong.bind(this);
+    this.resumeSong = this.resumeSong.bind(this);
+    this.playNext = this.playNext.bind(this);
+    this.playPrevious = this.playPrevious.bind(this);
   }
 
   componentDidMount(){
@@ -237,29 +243,52 @@ export default class HomeScreen extends Component {
 
 
   /** FUNCTION(): Make a Spotify API request to play a song */
-  playSong(song) {
+  playSong(index) {
+    const song = this.state.songs[index];
+    this.setState({
+      playing: true,
+      artistName: song.artists[0].name,
+      albumName: song.album.name,
+      trackName: song.name,
+      albumCover: song.album.images[1].url,
+      index: index
+    });
     NativeModules.SpotifyAuth.playSong(song.uri);
-    // spotifyApi.getMyDevices()
-    //     .then( res => {
-    //       console.log("AVAILABLE DEVICES: ", res.body.devices);
-    //       if ( res.body.devices.length === 0 ) {
-    //           // Open playlist on the web if no available device
-    //           Linking.openURL(song.uri+'//app');
-    //           spotifyApi.play({ context_uri: song.uri })
-    //           .catch( err => { console.log("Error playing song: ", err) })
-             
-    //       } else {
-    //           // Start the playlist on the first available device
-    //           spotifyApi.play({ uris: [song.uri] })
-    //           .catch( err => { console.log("Error playing playlist: ", err) })  
-    //       }                          
-    //     })
-    //     .catch( err => { console.log("Error getting available devices: ", err) }) 
   }
 
+  /** FUNCTION(): Make a Spotify API request to play a song */
+  playNext() {
+    let index = 0;
+    if(this.state.index === this.state.songs.length - 1) index = 0;
+    else index = this.state.index + 1;
+    this.playSong(index);
+  }
+
+  /** FUNCTION(): Make a Spotify API request to play a song */
+  playPrevious() {
+    let index = 0;
+    if(this.state.index === 0) index = this.state.songs.length - 1
+    else index = this.state.index - 1;
+    this.playSong(index);
+  }
+
+  /** FUNCTION(): Make a Spotify API request to play a song */
+  resumeSong(song) {
+    this.setState({ playing: true });
+    NativeModules.SpotifyAuth.resume();
+  }
+ 
   /** FUNCTION(): Make a Spotify API request to pause a song */
-  pauseSong(song) {
-    NativeModules.SpotifyAuth.pause();
+  pauseSong() {
+    NativeModules.SpotifyAuth.pause()
+    .then(res => {
+      const position = res;
+      console.log("FINETUNEAPP:: Position of paused track =>", position);
+      this.setState({ position: position, playing: false });    
+    })
+    .catch( err => {
+      console.log("FINETUNEAPP:: Could not get position of paused track");     
+    });
   }
 
   /** FUNCTION(): Delete song from playlist */
@@ -268,7 +297,6 @@ export default class HomeScreen extends Component {
     const songs = this.state.songs;
     songs.splice(index, 1);
     console.log(songs);
-    
     this.setState({ songs })
   }
 
@@ -289,6 +317,7 @@ export default class HomeScreen extends Component {
   render() {
     console.log("RENDERING HOMESCREEN");
     console.log("Have results? ", this.state.haveResults);
+    console.log("AlbumCover? ", this.state.albumCover);
     if (this.state.haveResults === true) {
       this.props.navigation.navigate('ListResults', {
         songs: this.state.songs,
@@ -296,9 +325,19 @@ export default class HomeScreen extends Component {
         createNewPlaylist: this.createNewPlaylist,
         saveTracks: this.saveTracks,
         playSong: this.playSong,
+        pauseSong: this.pauseSong,
+        resumeSong: this.resumeSong,
         deleteSong: this.deleteSong,
+        playNext: this.playNext,
+        playPrevious: this.playPrevious,
         haveResults: this.state.haveResults,
-        resetHaveResults: this.resetHaveResults
+        resetHaveResults: this.resetHaveResults,
+        playing: this.state.playing,
+        artistName: this.state.artistName,
+        albumName: this.state.albumName,
+        trackName: this.state.trackName,
+        albumCover: this.state.albumCover,
+        position: this.state.position
       });
     }; 
 

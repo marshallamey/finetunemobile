@@ -57,9 +57,38 @@ public class SpotifyModule extends ReactContextBaseJavaModule {
 
   // Pause a song in FineTune
   @ReactMethod
-  static void pause() {
-    Log.d("SpotifyModule", "Trying to pause...");
+  static void pause(@Nonnull Promise promise) {
+    Log.d("SpotifyModule", "Pausing track...");
     MainActivity.mPlayer.pause(null);
+    promise.resolve((int)MainActivity.mPlayer.getPlaybackState().positionMs);
+  }
+
+  // Resume a song in FineTune
+  @ReactMethod
+  static void resume() {
+    Log.d("SpotifyModule", "Resuming track...");
+    MainActivity.mPlayer.resume(null);
+  }
+
+  // Skip to next song in FineTune
+  @ReactMethod
+  static void skipToNext() {
+    Log.d("SpotifyModule", "Skipping to next track...");
+    MainActivity.mPlayer.skipToNext(null);
+  }
+
+  // Skip to previous song in FineTune
+  @ReactMethod
+  static void skipToPrevious() {
+    Log.d("SpotifyModule", "Skipping to previous track...");
+    MainActivity.mPlayer.skipToPrevious(null);
+  }
+
+  // Get position of song in FineTune
+  @ReactMethod
+  static void getPosition() {
+    Log.d("SpotifyModule", "Trying to pause...");
+   
   }
 
   // Send ACCESS TOKEN to React Native

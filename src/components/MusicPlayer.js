@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import { 
+  NativeModules,
   ScrollView, 
   Slider, 
   Image, 
@@ -13,51 +14,42 @@ import { CheckBox, Icon, Button } from 'react-native-elements'
 
 
 const MusicPlayer = (props) => {
-  console.log("musicplayer song ",props.song);
+  console.log("ALBUMCOVER:: ", props.albumCover);
   
-  let song = '';
-    if(props.song) { 
-      song = (
-        <View>
-          <Text>Artist: {props.song.artists[0].name}</Text>
-          <Text>Track: {props.song.name}</Text>
-          <Text>Album: {props.song.album.name}</Text>
-        </View>
-      );
-  } else {
-    song = (
-      <View>
-          <Text> </Text>
-          <Text> </Text>
-          <Text> </Text>
-        </View>
-    );
-  }
     return (
       <View>
-        {song}
+        <View style={{flexDirection: 'row'}}>
+          <View>
+            <Image source={{ uri: props.albumCover}} style={{width: 60, height: 60}} />
+          </View>
+          <View>
+            <Text>{props.trackName}</Text>
+            <Text>{props.artistName}</Text>        
+            <Text>{props.albumName}</Text>
+          </View>
+        </View>
         <View style={{flexDirection: 'row', justifyContent: 'center'}}>
 
           <Icon 
             name='skip-previous'
-            onPress={() => NativeModules.SpotifyAuth.playPrevious() }
+            onPress={() => props.playPrevious() }
             iconStyle={{fontSize: 40}} />
 
             { props.playing ? 
               <Icon 
                 name='pause'
-                onPress={() => NativeModules.SpotifyAuth.pause() }
+                onPress={() => props.pauseSong() }
                 iconStyle={{fontSize: 40}} />
             : 
               <Icon 
                 name='play-arrow'
-                onPress={() => NativeModules.SpotifyAuth.playSong(song.uri) }
+                onPress={() => props.resumeSong() }
                 iconStyle={{fontSize: 40}} /> 
             }
           
           <Icon 
             name='skip-next'
-            onPress={() => NativeModules.SpotifyAuth.playNext() }
+            onPress={() => props.playNext() }
             iconStyle={{fontSize: 40}} />
         </View>
       </View>
