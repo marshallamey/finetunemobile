@@ -20,9 +20,7 @@ const HelpModal = (props) => {
         <View style={styles.modalContent}>
             
             {/* Modal Header and Close Icon */}
-            {console.log(featuresDesc)}
-            {console.log(props.feature)}
-            {console.log(featuresDesc[props.feature])}
+            
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
               <Text style={{fontSize: 18}}>{featuresDesc[props.feature].name}</Text>
               <TouchableHighlight

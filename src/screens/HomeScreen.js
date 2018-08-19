@@ -5,7 +5,8 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import seed_data from '../js/seed';
 const spotifyApi = new SpotifyWebApi();
 let accessToken = "";
-let expiresIn = "";
+let expireTime = "";
+let currentTime = "";
 
 export default class HomeScreen extends Component {
 
@@ -14,8 +15,6 @@ export default class HomeScreen extends Component {
     super(props);
 
     this.state = {
-        access_token: "",
-        tokenExpires: "",
         loggedIn: false,
         user: {id: ""},
         allGenres: [],
@@ -35,71 +34,77 @@ export default class HomeScreen extends Component {
  
     this.saveTracks = this.saveTracks.bind(this);
     this.createNewPlaylist = this.createNewPlaylist.bind(this);
+    this.deleteSong = this.deleteSong.bind(this);
   }
 
+  componentDidMount(){
+    
+  }
+
+  /* 
+  *  The Spotify SDK logs in the USER before the app starts
+  *  Spotify provides an accessToken that is valid for one hour 
+  */
   _initializeApp = async () => {
     console.log("FINETUNEAPP:: Starting app && authenticating USER");
-    
-    /* The Spotify SDK logs in the USER before the app starts
-    *  Spotify provides an accessToken that is valid for one hour 
-    */
 
     // If there is no accessToken in state
     if (!this.state.accessToken) {
-      console.log("FINETUNE APP:: No access token in state. Checking AsyncStorage...");   
-      const currentTime = new Date().getTime();
+      console.log("FINETUNE APP:: No access token in state. Checking Spotify SDK...");   
+      currentTime = new Date().getTime();
+      expireTime = await AsyncStorage.getItem('expireTime');
+          
+      // Check Spotify SDK to see if previous token was saved
+      accessToken = await NativeModules.SpotifyAuth.getAccessToken();
       
-      
-      // Check AsyncStorage to see if previous token was saved
-      accessToken = await AsyncStorage.getItem('accessToken');
-      expiresIn = await AsyncStorage.getItem('expiresIn');
-
-      // If no accessToken saved in AsyncStorage, 
-      // fetch previous accessToken from Spotify SDK
+      // If no accessToken saved in Spotify SDK, 
+      // fetch previous accessToken from AsyncStorage
       if(!accessToken) {
-        console.log("FINETUNE APP:: No access token in phone storage.  Checking Spotify SDK...");        
-        accessToken = await NativeModules.SpotifyAuth.getAccessToken();
+        console.log("FINETUNE APP:: No access token in SDK.  Checking AsyncStorage..");        
+        accessToken = await AsyncStorage.getItem('accessToken');
         
         // If no accessToken in state, AsyncStorage, or Spotify SDK
-        // OR if token from Spotify SDK is expired
+        // OR if token from AsyncStorage is expired
         // Send USER to authentication flow
-        if(!accessToken || currentTime >= parseInt(expiresIn)) {
+        if(!accessToken || currentTime >= parseInt(expireTime)) {
           console.log("FINETUNE APP:: No access token found or expired token.  Sending USER to Spotify for authentication."); 
           this._authenticateUser(); 
           return;
         } else {
-          //If we get accessToken from Spotify SDK, save it to storage
-          console.log("FINETUNE APP:: Retrieved token from Spotify SDK");          
-          try {
-            await AsyncStorage.setItem('accessToken', accessToken);            
-            console.log("FINETUNE APP:: Saved accessToken to Async ==> ", accessToken);
-          } catch (error) {
-            console.log("FINETUNE APP:: Error saving accessToken to Async");   
-          }
-        }       
+          //If we get accessToken from AsyncStorage, continue         
+          console.log("FINETUNE APP:: Retrieved token from AsyncStorage");
+        } 
+
       } else {
-        // If we get accessToken from storage, check if it is expired
-        // If so, send USER to authentication flow
-        console.log("FINETUNE APP:: Retrieved token from AsyncStorage");
-        if(currentTime >= parseInt(expiresIn)) {
-          console.log("Expired token.  Sending USER to Spotify for authentication."); 
+        // Else if we get accessToken from Spotify SDK, check if it is expired.
+        // If so, send USER to auth flow    
+        console.log("FINETUNE APP:: Retrieved token from Spotify SDK"); 
+        if(currentTime >= parseInt(expireTime)) {
+          console.log("FINETUNE APP:: Expired token.  Sending USER to Spotify for authentication."); 
           this._authenticateUser(); 
           return;
+        }   
+        // If not expired, save it to storage
+        try {
+          await AsyncStorage.setItem('accessToken', accessToken);            
+          console.log("FINETUNE APP:: Saved accessToken to Async ==> ", accessToken);
+        } catch (error) {
+          console.log("FINETUNE APP:: Error saving accessToken to Async");   
         }
       }
       
       // If token found and not expired, display information
       console.log("ACCESS TOKEN FROM SDK ==> ", accessToken);
-      console.log("TOKEN EXPIRES ==> ", expiresIn);
+      console.log("TOKEN EXPIRES ==> ", expireTime);
       console.log("CURRENT TIME ==> ", currentTime);
-      console.log("TIME LEFT ==> ", expiresIn - currentTime);
+      console.log("TIME LEFT ==> ", expireTime - currentTime);
       
       // Initialize Spotify Web API with accessToken
       spotifyApi.setAccessToken(accessToken);
 
       // Get available genres from Spotify
       const genres = await spotifyApi.getAvailableGenreSeeds();
-      const allGenres = genres.body.genres;
+      const allGenres = this._modifyGenres(genres.body.genres);      
       //console.log("RETURNED GENRES: ", allGenres);
 
       // Get USER info from Spotify
@@ -109,14 +114,14 @@ export default class HomeScreen extends Component {
         //console.log("CURRENT USER: ", user);
           
         //Update state with all information
-        this.setState({ accessToken, expiresIn, user, allGenres })
+        this.setState({ accessToken, expireTime, user, allGenres })
       });
 
     } else {
       // There is already an accessToken in state
       // Check if it is expired
       // If so, send user to authentication flow
-      if ( currentTime >= expiresIn) { 
+      if ( currentTime >= expireTime) { 
         console.log("FINETUNE APP:: Access token is expired!  Getting new token..."); 
         this._authenticateUser();
       }
@@ -126,12 +131,12 @@ export default class HomeScreen extends Component {
   /** FUNCTION(): Clear details and send USER to authentication flow */
   _authenticateUser = async () => {
     // Set and save new expiration time for the coming token
-    expiresIn = new Date().getTime() + 3600000;  
+    expireTime = new Date().getTime() + 3600000;  
     try {
-      await AsyncStorage.setItem('expiresIn', JSON.stringify(expiresIn));            
-      console.log("FINETUNE APP:: Saved new expiresIn to Async ==> ", expiresIn);
+      await AsyncStorage.setItem('expireTime', JSON.stringify(expireTime));            
+      console.log("FINETUNE APP:: Saved new expireTime to Async ==> ", expireTime);
     } catch (error) {
-      console.log("FINETUNE APP:: Error saving expiresIn to Async");   
+      console.log("FINETUNE APP:: Error saving expireTime to Async");   
     } 
     try {
       await AsyncStorage.removeItem('accessToken');            
@@ -150,6 +155,18 @@ export default class HomeScreen extends Component {
     await AsyncStorage.clear();
     NativeModules.SpotifyAuth.clearAccessToken();
   };
+
+   /* 
+   * FUNCTION(): Change available genres from array to 
+   *  object format for SectionedMultiSelect 
+   */
+  _modifyGenres(genres) {
+    const genreObject = genres.map((genre, index) => ({
+      name: genre.toUpperCase(),
+      id: index
+    }));
+    return genreObject; 
+  }
 
 
   /** FUNCTION(): Make a Spotify API request for music */
@@ -245,6 +262,16 @@ export default class HomeScreen extends Component {
     NativeModules.SpotifyAuth.pause();
   }
 
+  /** FUNCTION(): Delete song from playlist */
+  deleteSong(index) {
+    console.log("Deleting song at index ", index);
+    const songs = this.state.songs;
+    songs.splice(index, 1);
+    console.log(songs);
+    
+    this.setState({ songs })
+  }
+
   /** FUNCTION(): Reset haveResults flag */
   resetHaveResults() {
     this.setState({ haveResults: false }); 
@@ -261,7 +288,7 @@ export default class HomeScreen extends Component {
 
   render() {
     console.log("RENDERING HOMESCREEN");
-    console.log(this.state.haveResults);
+    console.log("Have results? ", this.state.haveResults);
     if (this.state.haveResults === true) {
       this.props.navigation.navigate('ListResults', {
         songs: this.state.songs,
@@ -269,6 +296,7 @@ export default class HomeScreen extends Component {
         createNewPlaylist: this.createNewPlaylist,
         saveTracks: this.saveTracks,
         playSong: this.playSong,
+        deleteSong: this.deleteSong,
         haveResults: this.state.haveResults,
         resetHaveResults: this.resetHaveResults
       });
@@ -294,7 +322,8 @@ export default class HomeScreen extends Component {
             onPress={ () => this.props.navigation.navigate('ListSearch',
               {
                 allGenres: this.state.allGenres,
-                onSearchFormSubmit: searchProps => this.musicSearch(searchProps), 
+                onSearchFormSubmit: searchProps => this.musicSearch(searchProps),
+                haveResults: this.state.haveResults 
               })  }
           >
             Search for Music

@@ -61,7 +61,7 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
         AuthenticationRequest request = builder.build();
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
 
-setContentView(mReactRootView);
+
         
     }
 
@@ -75,9 +75,9 @@ setContentView(mReactRootView);
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 accessToken = response.getAccessToken();
                 expiresIn = response.getExpiresIn();
-
                 Log.d("MainActivity", "Saving accessToken ==> " + accessToken);
                 Log.d("MainActivity", "Saving expiresIn ==> " + expiresIn);
+               
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
@@ -93,6 +93,7 @@ setContentView(mReactRootView);
                 });
             }
         }
+        setContentView(mReactRootView);
         
     }
 
@@ -185,6 +186,7 @@ setContentView(mReactRootView);
     @Override
     public void onLoginFailed(Error var1) {
         Log.d("MainActivity", "Login failed");
+  
     }
 
     @Override

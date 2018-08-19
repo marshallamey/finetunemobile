@@ -21,11 +21,10 @@ export default class PlaylistSearch extends Component {
 
   constructor(props) {
     super(props);
-    const genres = this._modifyGenres(this.props.navigation.getParam('allGenres', []));
     //console.log("GENRES AS OBJECTS: ", genres);
     
     this.state = {
-       spotify_genres: genres,
+       spotify_genres: this.props.navigation.state.params.allGenres,
        chosen_genres: [],
 
        min_acousticness: 0.0,
@@ -64,20 +63,8 @@ export default class PlaylistSearch extends Component {
     };
     
     this.toggleHelpModal = this.toggleHelpModal.bind(this);
+    this.onSelectedItemsChange = this.onSelectedItemsChange.bind(this);
   }
-
-   /* 
-   * FUNCTION(): Change available genres from array to 
-   *  object format for SectionedMultiSelect 
-   */
-  _modifyGenres(genres) {
-    const genreObject = genres.map((genre, index) => ({
-      name: genre.toUpperCase(),
-      id: index
-    }));
-    return genreObject; 
-  }
-
   
    /* FUNCTION(): Change state of chosen genres */
    onSelectedItemsChange(genres) { 
@@ -155,7 +142,7 @@ export default class PlaylistSearch extends Component {
     })
 
     // Add selected properties to Spotify API request
-    let searchProps = { seed_genres: genres }
+    let searchProps = { seed_genres: genres, limit: 1 }
 
     if(this.state.min_acousticness !== 0.0 || this.state.max_acousticness !== 1.0) {
         searchProps.min_acousticness = this.state.min_acousticness;
@@ -222,8 +209,8 @@ export default class PlaylistSearch extends Component {
   };
 
   render() {
-    console.log("RENDERING PLAYLISTSEARCH");
-    console.log(this.props.navigation.state.params.haveResults);
+    console.log("RENDERING PLAYLISTSEARCH"); 
+    console.log("Have results?  ",this.props.navigation.state.params.haveResults);
 
    
 
@@ -254,14 +241,14 @@ export default class PlaylistSearch extends Component {
             onPress={ () => this.handleSubmit() } >
               Submit
             </Button>
-            <Icon name='arrow-drop-down' color='#ffffff' size={20} />
+            
           </View>
 
-          <View style={{ paddingTop: 30}}>
+          <View style={{ paddingTop: 5}}>
             <Text style={styles.subheader3}>OR</Text>
-            <Text style={styles.subheader3}>Scroll down to fine tune your search</Text>
+            <Text style={ styles.header }>Step 2: Fine Tune Your Search</Text>
           </View>
-                 
+
         </View>
 
         {/* OPTIONAL SEARCH CRITERIA
@@ -752,7 +739,7 @@ const styles = {
     backgroundColor: '#222222', 
     paddingLeft: 20,            
     paddingRight: 20, 
-    paddingBottom: 20           
+    paddingBottom: 10           
   },
   inputView: {
     marginTop: 20,
@@ -787,7 +774,7 @@ const styles = {
   header: {
     color: '#ffffff',
     fontSize: 20,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   subheader: {
     color: '#ffffff',
@@ -806,6 +793,8 @@ const styles = {
     color: '#1ed760',
     fontSize: 15,
     textAlign: 'center',
+    paddingBottom: 10,
+    paddingTop: 10
   },
   inputs: {
     paddingTop: 0,

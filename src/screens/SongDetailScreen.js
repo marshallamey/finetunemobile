@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Dimensions, ScrollView, Text, Image, View, TouchableHighlight, NativeModules } from 'react-native';
 import { Card, List, ListItem, Button, Icon } from 'react-native-elements';
 import  Modal from 'react-native-modal';
+import HelpModal from '../components/HelpModal';
 
 class Song extends Component {
 
@@ -9,10 +10,11 @@ class Song extends Component {
     super(props);
     
     this.state = {
-       spotify_genres: [],
-       chosen_genres: []
+      isModalVisible: false,
+      feature: 'none'
     }
     
+    this.toggleHelpModal = this.toggleHelpModal.bind(this); 
 
     //console.log(song);
     //console.log(features);
@@ -57,14 +59,10 @@ class Song extends Component {
   }
   
   /* FUNCTION(): Show Modal with more information about an attribute */
-  togglePopover(id) {
-    var popoverState = id+"PopoverOpen";
-    console.log(popoverState);
-    console.log(this.state[popoverState]);     
-    var newState = {}
-    newState[popoverState] = !this.state[popoverState];
-    console.log(newState);  
-    this.setState(newState);
+  toggleHelpModal(id) { 
+    console.log("IS modal visible?  ", this.state.isModalVisible);
+    
+    this.setState({ isModalVisible: !this.state.isModalVisible, feature: id });
   }
 
   render() {
@@ -115,41 +113,6 @@ class Song extends Component {
       if (features.mode === 0 ) mode = ' Minor';
       else mode = ' Major';
 
-    const HelpModal = (
-
-      <View style={styles.modalContainer}>
-    
-        <Modal
-          transparent={true}
-          isVisible={false}
-          backdropColor={'#222222'}
-          backdropOpacity={0.8}
-          animationIn={'zoomInDown'}
-          animationOut={'zoomOutUp'} 
-        >
-          <View style={styles.modalContent}>
-              
-              {/* Modal Header and Close Icon */}
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
-                <Text style={{fontSize: 18}}>Duration</Text>
-                <TouchableHighlight onPress={() => { this.togglePopover("close"); }} >
-                  <Icon 
-                    name='close' 
-                    color='#1ed760' 
-                    size={20} />
-                </TouchableHighlight>
-              </View>
-              
-              {/* Modal Body */}
-              <View style={{padding: 20}}>
-                <Text>This body area needs to be filled with information depending on the id</Text>
-              </View> 
-    
-          </View>               
-        </Modal>
-      </View>
-    );
-
 
     return (
       
@@ -180,6 +143,10 @@ class Song extends Component {
             containerViewStyle={styles.buttonContainer}
             onPress={() => params.saveTracks([song.id]) }
             title='SAVE TO LIBRARY' />
+
+
+
+          
 
           {/* List of Song Details */}
           <List>
@@ -234,10 +201,14 @@ class Song extends Component {
             /> 
 
             {/* Help Modal for ListItems which may need defining */}
-            {HelpModal}              
+            <HelpModal 
+              toggleHelpModal={ this.toggleHelpModal } 
+              isModalVisible={this.state.isModalVisible}
+              feature={this.state.feature}
+            />             
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("ac") }
+              leftIconOnPress={ () => this.toggleHelpModal("ac") }
               title='Acousticness'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.acousticness * 100) + ' / 100' }
@@ -245,7 +216,7 @@ class Song extends Component {
             />
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("dnc") }
+              leftIconOnPress={ () => this.toggleHelpModal("dnc") }
               title='Danceability'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.danceability * 100) + ' / 100' }
@@ -253,7 +224,7 @@ class Song extends Component {
             />
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("en") }
+              leftIconOnPress={ () => this.toggleHelpModal("en") }
               title='Energy'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.energy * 100) + ' / 100' }
@@ -261,7 +232,7 @@ class Song extends Component {
             />           
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("inst") }
+              leftIconOnPress={ () => this.toggleHelpModal("inst") }
               title='Instrumentalness'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.instrumentalness * 100) + ' / 100' }
@@ -269,7 +240,7 @@ class Song extends Component {
             />          
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("live") }
+              leftIconOnPress={ () => this.toggleHelpModal("live") }
               title='Liveness'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.liveness * 100) + ' / 100' }
@@ -277,7 +248,7 @@ class Song extends Component {
             />
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("pop") }
+              leftIconOnPress={ () => this.toggleHelpModal("pop") }
               title='Popularity'
               titleStyle={styles.title}
               rightTitle={ song.popularity + ' / 100' }
@@ -285,7 +256,7 @@ class Song extends Component {
             />
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("sp") }
+              leftIconOnPress={ () => this.toggleHelpModal("sp") }
               title='Speechiness'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.speechiness * 100) + ' / 100' }
@@ -293,7 +264,7 @@ class Song extends Component {
             />
             <ListItem
               leftIcon={styles.iconStyle}
-              leftIconOnPress={ () => this.togglePopover("val") }
+              leftIconOnPress={ () => this.toggleHelpModal("val") }
               title='Valence'
               titleStyle={styles.title}
               rightTitle={ Math.floor(features.valence * 100) + ' / 100' }

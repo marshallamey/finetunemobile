@@ -11,13 +11,31 @@ import {
 TouchableOpacity } from 'react-native';
 import { CheckBox, Icon, Button } from 'react-native-elements'
 
-const MusicPlayer = (props) => {
 
+const MusicPlayer = (props) => {
+  console.log("musicplayer song ",props.song);
+  
+  let song = '';
+    if(props.song) { 
+      song = (
+        <View>
+          <Text>Artist: {props.song.artists[0].name}</Text>
+          <Text>Track: {props.song.name}</Text>
+          <Text>Album: {props.song.album.name}</Text>
+        </View>
+      );
+  } else {
+    song = (
+      <View>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+        </View>
+    );
+  }
     return (
       <View>
-        <Text>Artist: {props.song.artists[0].name}</Text>
-        <Text>Track: {props.song.name}</Text>
-        <Text>Album: {props.song.album.name}</Text>
+        {song}
         <View style={{flexDirection: 'row', justifyContent: 'center'}}>
 
           <Icon 

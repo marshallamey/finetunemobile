@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { ScrollView, Image, View, TouchableOpacity } from 'react-native';
-import { ListItem, Icon } from 'react-native-elements'
+import { ScrollView, Image, View, TouchableOpacity, Text } from 'react-native';
+import { ListItem, Icon, Button } from 'react-native-elements'
 import Swipeable from 'react-native-swipeable';
 import MusicPlayer from '../components/MusicPlayer';
 import SavePlaylistForm from '../components/SavePlaylistForm';
@@ -43,17 +43,18 @@ export default class PlaylistResults extends Component {
 
     const leftButtons = [
       // Delete song button
-      <TouchableOpacity style={{flex: 1, alignItems: 'flex-end', justifyContent: 'center'}}> 
-      <View style={{width: 65, alignItems: 'center', justifyContent: 'center'}}> 
-      <Icon name='clear' color='#ffffff' />
-      </View> 
-      </TouchableOpacity>
+
     ];
 
     /** Create a list of tracks returned from Spotify API
      * Use the song ID as the key for each new song component
      * Each track is a property of the song component */
-    const tracks = songs.map((song, index) => {
+     
+    let tracks = '';
+    console.log("results  ", songs);
+    
+    if(songs.length) { 
+      tracks = songs.map((song, index) => {
       
       //If no album cover, use finetune logo
       let albumCover = song.album.images[1].url ? 
@@ -68,7 +69,16 @@ export default class PlaylistResults extends Component {
       return (
       <Swipeable 
       key={ song.id }
-      leftButtons={leftButtons}
+      leftButtons={[
+        <TouchableOpacity 
+          style={{flex: 1, alignItems: 'flex-end', justifyContent: 'center'}}
+          onPress={() => params.deleteSong(index)}
+        > 
+        <View style={{width: 65, alignItems: 'center', justifyContent: 'center'}}> 
+        <Icon name='clear' color='#ffffff' />
+        </View> 
+        </TouchableOpacity>
+       ]}
       leftButtonWidth={65}
       leftButtonContainerStyle={{backgroundColor: '#ff2525'}} >
 
@@ -81,13 +91,26 @@ export default class PlaylistResults extends Component {
             song: song, 
             features: features[index],
             saveTracks: params.saveTracks,
-            playSong: params.playSong
+            playSong: params.playSong,
           })}
         />
 
       </Swipeable>
       );
     });
+  } else {
+    console.log("NO MoRE SONGS");
+    
+    tracks = (
+      <View>
+        <Text>Your search returned no results. Try broadening your search criteria.</Text>
+        <Button 
+          title='Go Back'
+          onPress={() => this.props.navigation.goBack()}
+        />
+      </View>
+    );
+  }
 
     return (     
       <ScrollView >
