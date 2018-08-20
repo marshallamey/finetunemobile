@@ -14,6 +14,8 @@ export default class PlaylistResults extends Component {
     this.state = {
         playlistName: '' 
     };  
+
+    this.onNameChange = this.onNameChange.bind(this);
   }
 
   /* FUNCTION(): Change state of playlistName */
@@ -56,14 +58,8 @@ export default class PlaylistResults extends Component {
       tracks = songs.map((song, index) => {
       
       //If no album cover, use finetune logo
-      albumCover = song.album.images[1].url ? 
-        song.album.images[1].url 
-      : 
-        <Image 
-          source={require('../img/finetune-square-border-logo.jpg')}
-          width={300}
-          height={300}
-        />;
+      if (song.album.images[1]) albumCover = song.album.images[1].url; 
+      else albumCover = "http://res.cloudinary.com/skooliesocial/image/upload/v1533356615/finetune-square-border-logo_e4hwdv.jpg";
 
       return (
       <Swipeable 
@@ -84,7 +80,9 @@ export default class PlaylistResults extends Component {
         <ListItem   
           avatar={{ uri: albumCover }}
           title={ song.name }
+          titleStyle={{fontSize: 16, color: '#bbbbbb'}}
           subtitle={ song.artists[0].name } 
+          subtitleStyle={{fontSize: 14, color: '#9e9e9e'}}
           rightTitle='Details'
           onPress={ () => params.playSong(index)}
           onPressRightIcon={ () => this.props.navigation.navigate('SongDetail', {
@@ -113,9 +111,9 @@ export default class PlaylistResults extends Component {
   }
 
     return (     
-      <ScrollView >
+      <ScrollView style={styles.containerStyle}>
 
-        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <View style={styles.playerStyle}>
           <MusicPlayer 
             pauseSong={params.pauseSong}
             playSong={params.playSong}
@@ -129,8 +127,16 @@ export default class PlaylistResults extends Component {
             trackName={params.trackName}
             albumCover={params.albumCover}
             position={params.position }
-             />
-          <SavePlaylistForm songs={songs} createNewPlaylist={params.createNewPlaylist} />
+          />
+        </View>
+
+        <View style={styles.formStyle}>
+          <SavePlaylistForm 
+            songs={songs} 
+            createNewPlaylist={params.createNewPlaylist} 
+            onNameChange={this.onNameChange}
+            playlistName={this.state.playlistName}
+          />
         </View>
 
         <View>
@@ -139,5 +145,28 @@ export default class PlaylistResults extends Component {
 
       </ScrollView>
     );
+  }
+}
+
+const styles = {
+  containerStyle: {
+    backgroundColor: '#000000'
+  },
+  playerStyle: { 
+    backgroundColor: '#222222',
+    borderColor: '#777777',
+    borderWidth: 2,
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    margin: 15,
+    padding: 10
+  },
+  formStyle: {
+    backgroundColor: '#222222',
+    borderColor: '#777777',
+    borderWidth: 2,
+    margin: 15,
+    padding: 10,
+    borderWidth: 2
   }
 }
