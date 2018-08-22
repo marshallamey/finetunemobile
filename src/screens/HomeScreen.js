@@ -1,138 +1,72 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import { View, AsyncStorage, Image, NativeModules } from 'react-native';
-import Button from 'react-native-button';
+import { Button } from 'react-native-elements';
 import SpotifyWebApi from 'spotify-web-api-node';
-import seed_data from '../js/seed';
+import axios from 'axios';
+import AppLink from 'react-native-app-link';
+import queryString from 'query-string';
+
+
 const spotifyApi = new SpotifyWebApi();
 let accessToken = "";
 let expireTime = "";
 let currentTime = "";
 
-export default class HomeScreen extends Component {
+
+class HomeScreen extends Component {
 
   /** CONSTRUCTOR() */
   constructor(props) {
     super(props);
 
     this.state = {
-        loggedIn: false,
-        user: {id: ""},
-        allGenres: [],
-
-        haveResults: false, 
-        songs: [],       
-        audio_features: seed_data,
-
-        playing: false,
-        trackName: "",
-        artistName: "",
-        albumName: "",
-        albumCover: "http://res.cloudinary.com/skooliesocial/image/upload/v1533356615/finetune-square-border-logo_e4hwdv.jpg",    
-        position: 0,
-        index: 0             
+        user: {id: ""},   
+        loggedIn: false               
     };  
-    this._initializeApp();
- 
-    this.saveTracks = this.saveTracks.bind(this);
-    this.createNewPlaylist = this.createNewPlaylist.bind(this);
-    this.deleteSong = this.deleteSong.bind(this);
-    this.playSong = this.playSong.bind(this);
-    this.pauseSong = this.pauseSong.bind(this);
-    this.resumeSong = this.resumeSong.bind(this);
-    this.playNext = this.playNext.bind(this);
-    this.playPrevious = this.playPrevious.bind(this);
-  }
 
-  componentDidMount(){
+    this._initializeApp();
+    // this.getHashParams();
     
   }
+
+
 
   /* 
   *  The Spotify SDK logs in the USER before the app starts
   *  Spotify provides an accessToken that is valid for one hour 
   */
   _initializeApp = async () => {
+
     console.log("FINETUNEAPP:: Starting app && authenticating USER");
 
-    // If there is no accessToken in state
-    if (!this.state.accessToken) {
-      console.log("FINETUNE APP:: No access token in state. Checking Spotify SDK...");   
-      currentTime = new Date().getTime();
-      expireTime = await AsyncStorage.getItem('expireTime');
-          
-      // Check Spotify SDK to see if previous token was saved
-      accessToken = await NativeModules.SpotifyAuth.getAccessToken();
-      
-      // If no accessToken saved in Spotify SDK, 
-      // fetch previous accessToken from AsyncStorage
-      if(!accessToken) {
-        console.log("FINETUNE APP:: No access token in SDK.  Checking AsyncStorage..");        
-        accessToken = await AsyncStorage.getItem('accessToken');
-        
-        // If no accessToken in state, AsyncStorage, or Spotify SDK
-        // OR if token from AsyncStorage is expired
-        // Send USER to authentication flow
-        if(!accessToken || currentTime >= parseInt(expireTime)) {
-          console.log("FINETUNE APP:: No access token found or expired token.  Sending USER to Spotify for authentication."); 
-          this._authenticateUser(); 
-          return;
-        } else {
-          //If we get accessToken from AsyncStorage, continue         
-          console.log("FINETUNE APP:: Retrieved token from AsyncStorage");
-        } 
+    
+  }
 
-      } else {
-        // Else if we get accessToken from Spotify SDK, check if it is expired.
-        // If so, send USER to auth flow    
-        console.log("FINETUNE APP:: Retrieved token from Spotify SDK"); 
-        if(currentTime >= parseInt(expireTime)) {
-          console.log("FINETUNE APP:: Expired token.  Sending USER to Spotify for authentication."); 
-          this._authenticateUser(); 
-          return;
-        }   
-        // If not expired, save it to storage
-        try {
-          await AsyncStorage.setItem('accessToken', accessToken);            
-          console.log("FINETUNE APP:: Saved accessToken to Async ==> ", accessToken);
-        } catch (error) {
-          console.log("FINETUNE APP:: Error saving accessToken to Async");   
-        }
-      }
-      
-      // If token found and not expired, display information
-      console.log("ACCESS TOKEN FROM SDK ==> ", accessToken);
-      console.log("TOKEN EXPIRES ==> ", expireTime);
-      console.log("CURRENT TIME ==> ", currentTime);
-      console.log("TIME LEFT ==> ", expireTime - currentTime);
-      
-      // Initialize Spotify Web API with accessToken
-      spotifyApi.setAccessToken(accessToken);
-
-      // Get available genres from Spotify
-      const genres = await spotifyApi.getAvailableGenreSeeds();
-      const allGenres = this._modifyGenres(genres.body.genres);      
-      //console.log("RETURNED GENRES: ", allGenres);
-
-      // Get USER info from Spotify
-      spotifyApi.getMe()
-      .then( res => {          
-        const user = res.body; 
-        //console.log("CURRENT USER: ", user);
-          
-        //Update state with all information
-        this.setState({ accessToken, expireTime, user, allGenres })
-      });
-
-    } else {
-      // There is already an accessToken in state
-      // Check if it is expired
-      // If so, send user to authentication flow
-      if ( currentTime >= expireTime) { 
-        console.log("FINETUNE APP:: Access token is expired!  Getting new token..."); 
-        this._authenticateUser();
-      }
+  generateRandomString = function(length) {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
+    return text;
   };
+
+
+     /* FUNCTION(): Get access and refresh tokens */
+     getHashParams() {    
+      var hashParams = {};
+      var e, r = /([^&;=]+)=?([^&;]*)/g,
+          q = window.location.hash.substring(1);
+      e = r.exec(q)
+      while (e) {
+         hashParams[e[1]] = decodeURIComponent(e[2]);
+         e = r.exec(q);
+      }
+      console.log("(1) RECEIVED THESE HASH PARAMS ==> ", hashParams); 
+      return hashParams;
+   }
 
   /** FUNCTION(): Clear details and send USER to authentication flow */
   _authenticateUser = async () => {
@@ -175,137 +109,7 @@ export default class HomeScreen extends Component {
   }
 
 
-  /** FUNCTION(): Make a Spotify API request for music */
-  musicSearch(searchProps) {
-    // API request to fetch songs
-    spotifyApi.getRecommendations(searchProps)
-    .then( songs => {
-      //console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.body.tracks);
-      
-      // Get the IDs of all songs returned     
-      let songIds = songs.body.tracks.map( song => { return song.id });
-      //console.log("(4) IDS OF SONGS: ", songIds);
-
-      // API request to fetch audio features for each song 
-      spotifyApi.getAudioFeaturesForTracks(songIds)
-      .then( res => {              
-        //console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.body.audio_features);
-        
-        //Update state ONCE with songs and features
-        this.setState({ songs: songs.body.tracks, audio_features: res.body.audio_features, haveResults: true });      
-      })
-      .catch( err => { console.log("Error getting audio features: ", err) })                
-    })
-    .catch( err => { console.log("Error getting recommendations: ", err) });
-  }
-
-  /** FUNCTION(): Make a Spotify API request to create a playlist with found music */
-  createNewPlaylist(song_uris, name) {
-    console.log('Sending uris => ', song_uris);
-    console.log('Sending playlist name => ', name);
-    
-    let playlistName = '';
-    const date = new Date().toLocaleString();
-    if (name) playlistName = name;
-    else playlistName = "FineTune Playlist " + date;
-    console.log('Sending playlist name => ', playlistName);
-    // Get USER id from Spotify
-    spotifyApi.getMe()
-    .then( user => {
-        console.log("CURRENT USER ID: ", user.body.id);        
-        
-        // Create a Spotify playlist
-        spotifyApi.createPlaylist(user.body.id, playlistName )
-        .then( playlist => {
-          console.log('RETURNED PLAYLIST: ',playlist);
-          
-          // Add the tracks to the playlist
-          spotifyApi.addTracksToPlaylist(user.body.id, playlist.body.id, song_uris)
-          .then( newPlaylist => {
-              console.log("PLAYLIST SAVED: ", newPlaylist); 
-          })
-          .catch( err => { console.log("Error adding tracks to playlist: ", err.message) }) 
-        })
-        .catch( err => { console.log("Error creating playlist: ", err.message) }) 
-    })
-    .catch( err => { console.log("Error getting user details: ", err.message) })     
-  }
-
-
-  /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
-  saveTracks(songIds) {
-    spotifyApi.addToMySavedTracks(songIds)
-    .then( () => {
-      console.log("Track Saved", songIds);        
-    })
-    .catch( err => { console.log("Error saving track(s) to library: ", err) }); 
-  }
-
-
-  /** FUNCTION(): Make a Spotify API request to play a song */
-  playSong(index) {
-    const song = this.state.songs[index];
-    this.setState({
-      playing: true,
-      artistName: song.artists[0].name,
-      albumName: song.album.name,
-      trackName: song.name,
-      albumCover: song.album.images[1].url,
-      index: index
-    });
-    NativeModules.SpotifyAuth.playSong(song.uri);
-  }
-
-  /** FUNCTION(): Make a Spotify API request to play a song */
-  playNext() {
-    let index = 0;
-    if(this.state.index === this.state.songs.length - 1) index = 0;
-    else index = this.state.index + 1;
-    this.playSong(index);
-  }
-
-  /** FUNCTION(): Make a Spotify API request to play a song */
-  playPrevious() {
-    let index = 0;
-    if(this.state.index === 0) index = this.state.songs.length - 1
-    else index = this.state.index - 1;
-    this.playSong(index);
-  }
-
-  /** FUNCTION(): Make a Spotify API request to play a song */
-  resumeSong(song) {
-    this.setState({ playing: true });
-    NativeModules.SpotifyAuth.resume();
-  }
- 
-  /** FUNCTION(): Make a Spotify API request to pause a song */
-  pauseSong() {
-    NativeModules.SpotifyAuth.pause()
-    .then(res => {
-      const position = res;
-      console.log("FINETUNEAPP:: Position of paused track =>", position);
-      this.setState({ position: position, playing: false });    
-    })
-    .catch( err => {
-      console.log("FINETUNEAPP:: Could not get position of paused track");     
-    });
-  }
-
-  /** FUNCTION(): Delete song from playlist */
-  deleteSong(index) {
-    console.log("Deleting song at index ", index);
-    const songs = this.state.songs;
-    songs.splice(index, 1);
-    console.log(songs);
-    this.setState({ songs })
-  }
-
-  /** FUNCTION(): Reset haveResults flag */
-  resetHaveResults() {
-    this.setState({ haveResults: false }); 
-  }
-
-  /** Header Config */
+  /** REACT NAVIGATION HEADER */
   static navigationOptions = {
     title: 'FineTune Pro',
     headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
@@ -315,35 +119,25 @@ export default class HomeScreen extends Component {
   };
 
   render() {
-    console.log("RENDERING HOMESCREEN");
-    console.log("Have results? ", this.state.haveResults);
-    console.log("AlbumCover? ", this.state.albumCover);
-    if (this.state.haveResults === true) {
-      this.props.navigation.navigate('ListResults', {
-        songs: this.state.songs,
-        features: this.state.audio_features,
-        createNewPlaylist: this.createNewPlaylist,
-        saveTracks: this.saveTracks,
-        playSong: this.playSong,
-        pauseSong: this.pauseSong,
-        resumeSong: this.resumeSong,
-        deleteSong: this.deleteSong,
-        playNext: this.playNext,
-        playPrevious: this.playPrevious,
-        haveResults: this.state.haveResults,
-        resetHaveResults: this.resetHaveResults,
-        playing: this.state.playing,
-        artistName: this.state.artistName,
-        albumName: this.state.albumName,
-        trackName: this.state.trackName,
-        albumCover: this.state.albumCover,
-        position: this.state.position
-      });
-    }; 
+  
+      const scope = 'user-read-private playlist-modify-public user-library-modify user-modify-playback-state user-read-playback-state user-read-currently-playing';
+const state = this.generateRandomString(16);
+    this.props.navigation.navigate('https://accounts.spotify.com/authorize?' +
+      queryString.stringify({
+        response_type: 'code',
+        client_id: 'dc0873f2467341dd9340d038f6234843',
+        scope: scope,
+        redirect_uri: 'https://finetune.herokuapp.com/callback',
+        state: state,
+        show_dialog: true
+      })
+    );
+  
 
     return (
       
       <View style={ styles.viewStyle }>
+
         {/* FINETUNE LOGO */}
         <View style={ styles.logo }>
           <Image 
@@ -356,33 +150,38 @@ export default class HomeScreen extends Component {
         <View style={ styles.btnMenu }>    
 
           <Button
-            style={ styles.btnStyle }
-            containerStyle={ styles.containerStyle }       
-            onPress={ () => this.props.navigation.navigate('ListSearch',
-              {
-                allGenres: this.state.allGenres,
-                onSearchFormSubmit: searchProps => this.musicSearch(searchProps),
-                haveResults: this.state.haveResults 
-              })  }
-          >
-            Search for Music
-          </Button>
+            title='Search for Music'
+            backgroundColor='#ff2525'
+            color='#ffffff'
+            fontSize={ 20 }
+            borderRadius={ 40 }
+            containerViewStyle={ styles.containerStyle }       
+            onPress={ () => this.props.navigation.navigate('ListSearch', { 
+              // allGenres: this.state.allGenres,
+              // spotifyApi: spotifyApi 
+            })} 
+          />
 
           <Button
-            style={ styles.btnStyle }
-            containerStyle={ styles.containerStyle }
+            title='View FineTune Playlists'
+            backgroundColor='#ff2525'
+            color='#ffffff'
+            fontSize={ 20 }
+            borderRadius={ 40 }
+            containerViewStyle={ styles.containerStyle }
             onPress={ this._signOutUser }
-          >
-            View FineTune Playlists
-          </Button>
+          />
 
           <Button
-            style={ styles.btnStyle }
-            containerStyle={ styles.containerStyle }
+            title='Look Up Song Details'
+            backgroundColor='#ff2525'
+            color='#ffffff'
+            fontSize={ 20 }
+            borderRadius={ 40 }
+            containerViewStyle={ styles.containerStyle }
             onPress={ () => NativeModules.SpotifyAuth.pause() }
-          >
-            Look Up Song Details
-          </Button>
+          />
+
         </View>
 
       </View>
@@ -408,16 +207,22 @@ const styles = {
     alignItems: 'center',
     alignSelf: 'stretch'
   }, 
-  btnStyle: {
-    color: '#ffffff',      
-    fontSize: 20
-  },
   containerStyle: { 
     padding: 15, 
     width: 250,
     marginBottom: 30,
-    overflow: 'hidden', 
-    borderRadius: 40, 
-    backgroundColor: '#ff2525' 
+    overflow: 'hidden'   
   }
 };
+
+const mapStateToProps = state => {
+  return { 
+    songs: state.songs,
+    addSongs: state.addSongs,
+    allGenres: state.allGenres,
+    addGenres: state.addGenres
+  }
+};
+
+export default connect(mapStateToProps, actions)(HomeScreen);
+

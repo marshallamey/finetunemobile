@@ -21,7 +21,7 @@ export default SavePlaylistForm = (props) => {
         backgroundColor='#ff2525'
         icon={{name: 'arrow-circle-o-down', type: 'font-awesome'}}
         title='SAVE THIS PLAYLIST' 
-        onPress={() => props.createNewPlaylist(song_uris, props.playlistName)} />
+        onPress={() => props.savePlaylist(song_uris, props.playlistName)} />
     </View>
   );
 

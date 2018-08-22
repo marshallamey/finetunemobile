@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
 import { createSwitchNavigator, createStackNavigator } from 'react-navigation';
+import reducers from '../reducers';
 
 import HomeScreen from '../screens/HomeScreen';
 import SongDetail from '../screens/SongDetailScreen';
@@ -27,7 +30,11 @@ const RootStack = createStackNavigator(
 
 export default class App extends Component {
   render() {
-    return <RootStack />;
+    return( 
+      <Provider store={createStore(reducers)}>
+        <RootStack />
+      </Provider> 
+    );
   };
 };
 

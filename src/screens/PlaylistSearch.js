@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import { 
   ScrollView, 
   Slider, 
   View, 
   Text, 
-  TouchableHighlight } from 'react-native';
-import Toast, {DURATION} from 'react-native-easy-toast'
+  TouchableHighlight,
+  AsyncStorage } from 'react-native';
 import { CheckBox, Icon } from 'react-native-elements'
 import Button from 'react-native-button';
 import  Modal from 'react-native-modal';
@@ -14,68 +16,72 @@ import SearchByGenre from '../components/SearchByGenre';
 import SearchByArtist from '../components/SearchByArtist';
 import SearchByAlbum from '../components/SearchByAlbum';
 import HelpModal from '../components/HelpModal';
+import SpotifyWebApi from 'spotify-web-api-node';
+
+const spotifyApi = new SpotifyWebApi();
+let accessToken ='';
+AsyncStorage.getItem('accessToken', (err, token) => {
+  if(err) console.log(err);
+  console.log("TOKEN RETRIEVED! ", token);
+  spotifyApi.setAccessToken(token);
+});
 
 
-
-export default class PlaylistSearch extends Component {
-
+class PlaylistSearch extends Component {
   constructor(props) {
     super(props);
-    //console.log("GENRES AS OBJECTS: ", genres);
-    
-    this.state = {
-       spotify_genres: this.props.navigation.state.params.allGenres,
-       chosen_genres: [],
 
-       min_acousticness: 0.0,
-       max_acousticness: 1.0,
-       min_danceability: 0.0,
-       max_danceability: 1.0,
-       min_energy: 0.0,
-       max_energy: 1.0,
-       min_instrumentalness: 0.0,
-       max_instrumentalness: 1.0,
-       target_key: 0,
-       min_liveness: 0.0,
-       max_liveness: 1.0,
-       min_loudness: -60,
-       max_loudness: 0,
-       target_mode: 1,
-       min_popularity: 0,
-       max_popularity: 100,
-       min_speechiness: 0.0,
-       max_speechiness: 1.0,
-       min_tempo: 40,
-       max_tempo: 300,
-       min_time_signature: 1,
-       max_time_signature: 13,
-       min_valence: 0.0,
-       max_valence: 1.0,
-       min_duration: 60000,
-       max_duration: 1800000,
-   
-       sliderLength: 280,
-       keyDisabled: true,
-       modeDisabled: true,
+    this.state = {
+      min_acousticness: 0.0,
+      max_acousticness: 1.0,
+      min_danceability: 0.0,
+      max_danceability: 1.0,
+      min_energy: 0.0,
+      max_energy: 1.0,
+      min_instrumentalness: 0.0,
+      max_instrumentalness: 1.0,
+      target_key: 0,
+      min_liveness: 0.0,
+      max_liveness: 1.0,
+      min_loudness: -60,
+      max_loudness: 0,
+      target_mode: 1,
+      min_popularity: 0,
+      max_popularity: 100,
+      min_speechiness: 0.0,
+      max_speechiness: 1.0,
+      min_tempo: 40,
+      max_tempo: 300,
+      min_time_signature: 1,
+      max_time_signature: 13,
+      min_valence: 0.0,
+      max_valence: 1.0,
+      min_duration: 60000,
+      max_duration: 1800000,
+  
+      sliderLength: 280,
+      keyDisabled: true,
+      modeDisabled: true,
 
       isModalVisible: false,
       feature: 'none'
     };
-    
-    this.toggleHelpModal = this.toggleHelpModal.bind(this);
-    this.onSelectedItemsChange = this.onSelectedItemsChange.bind(this);
+
+    this.toggleHelpModal = this.toggleHelpModal.bind(this);   
   }
-  
-   /* FUNCTION(): Change state of chosen genres */
-   onSelectedItemsChange(genres) { 
-    console.log("CHOSEN GENRES: ", genres);
-    if(genres.length <= 5) {  
-      this.setState({ chosen_genres: genres });   
-    }     
- }
+
+  /** REACT NAVIGATION HEADER */
+  static navigationOptions = {
+    title: 'FineTune Search',
+    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+    headerStyle: { backgroundColor: '#222222' },
+    headerTintColor: '#ffffff',
+    headerRight: (<View></View>)
+  };
+
 
   /* FUNCTION: Change state of song attributes when user moves any MultiSlider */
-    onRangeChange(id, value) { 
+  onRangeChange(id, value) { 
     console.log(id, value);
     const attrMin = "min_"+id;   
     const attrMax = "max_"+id;   
@@ -99,33 +105,33 @@ export default class PlaylistSearch extends Component {
     let newState = {}
     newState[disabledState] = !this.state[disabledState]
     this.setState(newState)
- }
+  }
 
   /* FUNCTION(): Show Modal with more information about an attribute */
   toggleHelpModal(id) { 
-    console.log("IS modal visible?  ", this.state.isModalVisible);
-    
+    console.log("IS modal visible?  ", this.state.isModalVisible); 
     this.setState({ isModalVisible: !this.state.isModalVisible, feature: id });
   }
 
   /* FUNCTION(): Display the proper note for key attribute */
   convertKey(note){
     const pitchNotation = {
-       0: 'C',
-       1: 'C# / D\u266D',
-       2: 'D',
-       3: 'D# / E\u266D',
-       4: 'E',
-       5: 'F',
-       6: 'F# / G\u266D',
-       7: 'G',
-       8: 'G# / A\u266D',
-       9: 'A',
-       10: 'A# / B\u266D',
-       11: 'B',
+      0: 'C',
+      1: 'C# / D\u266D',
+      2: 'D',
+      3: 'D# / E\u266D',
+      4: 'E',
+      5: 'F',
+      6: 'F# / G\u266D',
+      7: 'G',
+      8: 'G# / A\u266D',
+      9: 'A',
+      10: 'A# / B\u266D',
+      11: 'B',
     };
     return pitchNotation[note];
- }
+  }
+
 
   /* FUNCTION(): Display the proper time for duration attribute */
   millisToMinutesAndSeconds(millis) {
@@ -134,12 +140,12 @@ export default class PlaylistSearch extends Component {
     return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
   }
 
+
   /* FUNCTION(): Send request to Spotify API once form is submitted */
-  handleSubmit() { 
-    console.log("CHOSEN GENRES: ", this.state.chosen_genres);
+  handleSubmit() {
 
     //Make sure genres are lower case before submitting
-    const genres = this.state.chosen_genres.map(genre => {
+    const genres = this.props.selectedGenres.map(genre => {
       return genre.toLowerCase();
     })
 
@@ -198,40 +204,56 @@ export default class PlaylistSearch extends Component {
     if(!this.state.keyDisabled) searchProps.target_key = this.state.target_key;
 
     console.log("(2) SENDING THESE SEARCH PROPS ==> ", searchProps);      
-    this.props.navigation.state.params.onSearchFormSubmit(searchProps);
+    this.musicSearch(searchProps);
   }
 
-  /** Header Config */
-  static navigationOptions = {
-    title: 'FineTune Search',
-    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
-    headerStyle: { backgroundColor: '#222222' },
-    headerTintColor: '#ffffff',
-    headerRight: (<View></View>)
-  };
+  /** FUNCTION(): Make a Spotify API request for music */
+  musicSearch(searchProps) {
+    // API request to fetch songs
+    spotifyApi.getRecommendations(searchProps)
+    .then( songs => {
+      console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.body.tracks[0]);
+      
+      // Get the IDs of all songs returned     
+      let songIds = songs.body.tracks.map( song => { return song.id });
+      console.log("(4) IDS OF SONGS: ", songIds[0]);
+
+      // API request to fetch audio features for each song 
+      spotifyApi.getAudioFeaturesForTracks(songIds)
+      .then( res => {              
+        console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.body.audio_features[0]);
+        
+        //Attach audio features to song
+        let songsWithFeatures = songs.body.tracks.map((song, index) => {
+          song.audio_features = res.body.audio_features[index];
+          return song;
+        });
+
+        //Update state ONCE with songs and features
+        this.props.addSongs(songsWithFeatures); 
+        
+        this.props.navigation.navigate('ListResults');
+             
+      })
+      .catch( err => { console.log("Error getting audio features: ", err) })                
+    })
+    .catch( err => { console.log("Error getting recommendations: ", err) });
+  }
 
   render() {
-    console.log("RENDERING PLAYLISTSEARCH"); 
-    console.log("Have results?  ",this.props.navigation.state.params.haveResults);
-
-   
-
+    
     return (
       <ScrollView contentContainerStyle={ styles.containerStyle }>
 
         {/* REQUIRED OPTIONS
         *   A user is required to choose either a set of genres OR an artist
-        *   OR an album to conduct their search.  If more than one option is 
-        *   used, then the search will use the first option.  This means GENRE
-        *   receives highest search priority, followed by ARTIST, and then ALBUM       
+        *   OR an album to conduct their search.       
         */}
         <View style={ styles.requiredOptions }>
         
           {/* SEARCH BY OPTIONS */}
-          <SearchByGenre 
-            spotify_genres={this.state.spotify_genres}
-            chosen_genres={this.state.chosen_genres}
-            onSelectedItemsChange={this.onSelectedItemsChange} />
+          <SearchByGenre />
+
           {/* <SearchByArtist />
           <SearchByAlbum /> */}
 
@@ -267,7 +289,7 @@ export default class PlaylistSearch extends Component {
             isModalVisible={this.state.isModalVisible}
             feature={this.state.feature}
           />
-          
+
           {/* DURATION */}
           <View style={ styles.viewStyleLight }>
 
@@ -295,7 +317,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ this.millisToMinutesAndSeconds(this.state.min_duration) } to { this.millisToMinutesAndSeconds(this.state.max_duration) } </Text>
-        
+
           </View>
 
           {/* ACOUSTICNESS */}
@@ -325,7 +347,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_acousticness * 100) } to { Math.floor(this.state.max_acousticness * 100) }</Text>
-        
+
           </View>
 
           {/* DANCEABILITY */}
@@ -355,7 +377,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_danceability * 100) } to { Math.floor(this.state.max_danceability * 100) }</Text>
-        
+
           </View>
 
           {/* ENERGY */}
@@ -385,7 +407,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_energy * 100) } to { Math.floor(this.state.max_energy * 100) }</Text>
-        
+
           </View>
 
           {/* INSTRUMENTALNESS */}
@@ -415,7 +437,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_instrumentalness * 100) } to { Math.floor(this.state.max_instrumentalness * 100) }</Text>
-        
+
           </View>
 
           {/* LIVENESS */}
@@ -446,7 +468,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_liveness * 100) } to { Math.floor(this.state.max_liveness * 100) }</Text>
-        
+
           </View>
 
           {/* LOUDNESS */}
@@ -476,7 +498,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ this.state.min_loudness } to { this.state.max_loudness } dB</Text>
-        
+
           </View>
 
           {/* POPULARITY */}
@@ -506,7 +528,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ this.state.min_popularity } to { this.state.max_popularity }</Text>
-        
+
           </View>
 
           {/* SPEECHINESS */}
@@ -536,7 +558,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_speechiness * 100) } to { Math.floor(this.state.max_speechiness * 100) }</Text>
-        
+
           </View>
 
           {/* TEMPO */}
@@ -566,7 +588,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ this.state.min_tempo } to { this.state.max_tempo } bpm</Text>
-        
+
           </View>
 
           {/* VALENCE */}
@@ -596,7 +618,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ Math.floor(this.state.min_valence * 100) } to { Math.floor(this.state.max_valence * 100) }</Text>
-        
+
           </View>
 
           {/* TIME SIGNATURE */}
@@ -626,7 +648,7 @@ export default class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>{ this.state.min_time_signature } to { this.state.max_time_signature } beats per measure</Text>
-        
+
           </View>
 
           {/* KEY */}
@@ -641,7 +663,7 @@ export default class PlaylistSearch extends Component {
                 onPress={ () => this.toggleAttr("key") }
                 containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
                 textStyle={styles.header}
-      
+
               />
               
               <TouchableHighlight
@@ -665,7 +687,7 @@ export default class PlaylistSearch extends Component {
               onValueChange={ event => this.onSliderChange("key", event) } />
 
             <Text style={styles.subheader2}>{ this.convertKey(this.state.target_key) }</Text>
-        
+
           </View>
 
           {/* MODE */}
@@ -680,7 +702,7 @@ export default class PlaylistSearch extends Component {
                 onPress={ () => this.toggleAttr("mode") }
                 containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
                 textStyle={styles.header}
-      
+
               /> 
               <TouchableHighlight
                 onPress={() => { this.toggleHelpModal("mode"); }} >
@@ -704,7 +726,7 @@ export default class PlaylistSearch extends Component {
               onValueChange={ event => this.onSliderChange("mode", event) } />
 
             { this.state.target_mode === 0 ? <Text style={styles.subheader2}>Minor</Text> : <Text style={styles.subheader2}>Major</Text> }
-        
+
           </View>
 
           {/* SUBMIT BUTTON BOTTOM */}
@@ -718,8 +740,8 @@ export default class PlaylistSearch extends Component {
             </Button>
           </View>
 
-        </View>
-
+          </View>
+      
       </ScrollView>
     );
   }
@@ -820,3 +842,14 @@ const styles = {
   },
   iconSize: 16
 };
+
+const mapStateToProps = state => {
+  return { 
+    allGenres: state.allGenres,
+    selectedGenres: state.selectedGenres,
+    selectGenre: state.selectGenre,
+    addSongs: state.addSongs,
+    songs: state.songs
+  }
+};
+export default connect(mapStateToProps, actions)(PlaylistSearch);

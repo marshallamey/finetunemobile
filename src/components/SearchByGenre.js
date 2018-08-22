@@ -1,20 +1,22 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import { View, Text, } from 'react-native';
 import { CheckBox, Icon, Button } from 'react-native-elements';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 
 const SearchByGenre = (props) => {
-
+  console.log(props);
   return (
     <View style={ styles.inputView }>
       <Text style={ styles.header }>Step 1: Search by Genre</Text>
       <SectionedMultiSelect
-        items={ props.spotify_genres } 
+        items={ props.allGenres } 
         uniqueKey='name'
         selectText="Select up to 5 genres"
         loadingComponent={ <Text>Sorry, no results</Text> }
-        onSelectedItemsChange={ (event) => props.onSelectedItemsChange(event) }
-        selectedItems={ props.chosen_genres }
+        onSelectedItemsChange={ (event) => props.selectGenre(event) }
+        selectedItems={ props.selectedGenres }
         alwaysShowSelectText={ true }
         showDropDowns={ true }
         showCancelButton={ true }
@@ -66,5 +68,11 @@ const styles = {
     paddingBottom: 20
   }
 };
-
-export default SearchByGenre;
+const mapStateToProps = state => {
+  return { 
+    allGenres: state.allGenres,
+    selectedGenres: state.selectedGenres,
+    selectGenre: state.selectGenre
+  }
+};
+export default connect(mapStateToProps, actions)(SearchByGenre);
