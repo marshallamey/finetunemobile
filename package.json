@@ -35,5 +35,12 @@
     "android": {
       "mainFilePath": "src/main/java/com/marshallamey/finetunemobile/MainApplication.java"
     }
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.6",
+    "eslint": "^5.4.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-react": "^7.11.1"
   }
 }

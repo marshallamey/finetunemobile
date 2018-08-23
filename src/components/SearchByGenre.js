@@ -6,7 +6,7 @@ import { CheckBox, Icon, Button } from 'react-native-elements';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 
 const SearchByGenre = (props) => {
-  console.log(props);
+
   return (
     <View style={ styles.inputView }>
       <Text style={ styles.header }>Step 1: Search by Genre</Text>

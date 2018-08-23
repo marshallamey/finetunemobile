@@ -1,30 +1,22 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import * as actions from '../actions';
-import { 
-  ScrollView, 
-  Slider, 
-  View, 
-  Text, 
+import {
+  ScrollView,
+  Slider,
+  View,
+  Text,
   TouchableHighlight,
-  AsyncStorage } from 'react-native';
-import { CheckBox, Icon } from 'react-native-elements'
+  AsyncStorage,
+} from 'react-native';
+import { CheckBox, Icon } from 'react-native-elements';
 import Button from 'react-native-button';
-import  Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import SearchByGenre from '../components/SearchByGenre';
-import SearchByArtist from '../components/SearchByArtist';
-import SearchByAlbum from '../components/SearchByAlbum';
-import HelpModal from '../components/HelpModal';
 import SpotifyWebApi from 'spotify-web-api-node';
+import HelpModal from '../components/HelpModal';
+import SearchByGenre from '../components/SearchByGenre';
+import * as actions from '../actions';
 
 const spotifyApi = new SpotifyWebApi();
-let accessToken ='';
-AsyncStorage.getItem('accessToken', (err, token) => {
-  if(err) console.log(err);
-  console.log("TOKEN RETRIEVED! ", token);
-  spotifyApi.setAccessToken(token);
-});
 
 
 class PlaylistSearch extends Component {
@@ -58,16 +50,19 @@ class PlaylistSearch extends Component {
       max_valence: 1.0,
       min_duration: 60000,
       max_duration: 1800000,
-  
+
       sliderLength: 280,
       keyDisabled: true,
       modeDisabled: true,
 
       isModalVisible: false,
-      feature: 'none'
+      feature: 'none',
     };
+    AsyncStorage.getItem('accessToken', (err, token) => {
+      spotifyApi.setAccessToken(token);
+    });
 
-    this.toggleHelpModal = this.toggleHelpModal.bind(this);   
+    this.toggleHelpModal = this.toggleHelpModal.bind(this);
   }
 
   /** REACT NAVIGATION HEADER */
@@ -76,45 +71,43 @@ class PlaylistSearch extends Component {
     headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
     headerStyle: { backgroundColor: '#222222' },
     headerTintColor: '#ffffff',
-    headerRight: (<View></View>)
+    headerRight: (<View></View>),
   };
 
 
   /* FUNCTION: Change state of song attributes when user moves any MultiSlider */
-  onRangeChange(id, value) { 
-    console.log(id, value);
-    const attrMin = "min_"+id;   
-    const attrMax = "max_"+id;   
-    var newState = {};
+  onRangeChange(id, value) {
+    const attrMin = `min_${id}`;
+    const attrMax = `max_${id}`;
+    const newState = {};
     newState[attrMin] = value[0];
     newState[attrMax] = value[1];
-    this.setState(newState);        
+    this.setState(newState);
   }
 
   /* FUNCTION: Change state of song attributes when user moves any Slider */
-  onSliderChange(id, value) {    
-    const attr = "target_"+id;   
-    var newState = {}
-    newState[attr] = value
-    this.setState(newState);    
+  onSliderChange(id, value) {
+    const attr = `target_${id}`;
+    const newState = {};
+    newState[attr] = value;
+    this.setState(newState);
   }
 
-  /** FUNCTION(): Toggle a Slider for use **/
+  /** FUNCTION(): Toggle a Slider for use * */
   toggleAttr(id) {
-    const disabledState = id+'Disabled'
-    let newState = {}
-    newState[disabledState] = !this.state[disabledState]
-    this.setState(newState)
+    const disabledState = `${id}Disabled`;
+    const newState = {};
+    newState[disabledState] = !this.state[disabledState];
+    this.setState(newState);
   }
 
   /* FUNCTION(): Show Modal with more information about an attribute */
-  toggleHelpModal(id) { 
-    console.log("IS modal visible?  ", this.state.isModalVisible); 
+  toggleHelpModal(id) {
     this.setState({ isModalVisible: !this.state.isModalVisible, feature: id });
   }
 
   /* FUNCTION(): Display the proper note for key attribute */
-  convertKey(note){
+  static convertKey(note) {
     const pitchNotation = {
       0: 'C',
       1: 'C# / D\u266D',
@@ -134,76 +127,72 @@ class PlaylistSearch extends Component {
 
 
   /* FUNCTION(): Display the proper time for duration attribute */
-  millisToMinutesAndSeconds(millis) {
-    var minutes = Math.floor(millis / 60000);
-    var seconds = ((millis % 60000) / 1000).toFixed(0);
-    return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+  static millisToMinutesAndSeconds(millis) {
+    const minutes = Math.floor(millis / 60000);
+    const seconds = ((millis % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }
 
 
   /* FUNCTION(): Send request to Spotify API once form is submitted */
   handleSubmit() {
-
-    //Make sure genres are lower case before submitting
-    const genres = this.props.selectedGenres.map(genre => {
-      return genre.toLowerCase();
-    })
+    // Make sure genres are lower case before submitting
+    const genres = this.props.selectedGenres.map(genre => genre.toLowerCase());
 
     // Add selected properties to Spotify API request
-    let searchProps = { seed_genres: genres }
+    const searchProps = { seed_genres: genres };
 
-    if(this.state.min_acousticness !== 0.0 || this.state.max_acousticness !== 1.0) {
-        searchProps.min_acousticness = this.state.min_acousticness;
-        searchProps.max_acousticness = this.state.max_acousticness;
+    if (this.state.min_acousticness !== 0.0 || this.state.max_acousticness !== 1.0) {
+      searchProps.min_acousticness = this.state.min_acousticness;
+      searchProps.max_acousticness = this.state.max_acousticness;
     }
-    if(this.state.min_danceability !== 0.0 || this.state.max_danceability !== 1.0) {
-        searchProps.min_danceability = this.state.min_danceability;
-        searchProps.max_danceability = this.state.max_danceability;
+    if (this.state.min_danceability !== 0.0 || this.state.max_danceability !== 1.0) {
+      searchProps.min_danceability = this.state.min_danceability;
+      searchProps.max_danceability = this.state.max_danceability;
     }
-    if(this.state.min_energy !== 0.0 || this.state.max_energy !== 1.0) {
-        searchProps.min_energy = this.state.min_energy;
-        searchProps.max_energy = this.state.max_energy;
+    if (this.state.min_energy !== 0.0 || this.state.max_energy !== 1.0) {
+      searchProps.min_energy = this.state.min_energy;
+      searchProps.max_energy = this.state.max_energy;
     }
-    if(this.state.min_instrumentalness !== 0.0 || this.state.max_instrumentalness !== 1.0) {
-        searchProps.min_instrumentalness = this.state.min_instrumentalness;
-        searchProps.max_instrumentalness = this.state.max_instrumentalness;
+    if (this.state.min_instrumentalness !== 0.0 || this.state.max_instrumentalness !== 1.0) {
+      searchProps.min_instrumentalness = this.state.min_instrumentalness;
+      searchProps.max_instrumentalness = this.state.max_instrumentalness;
     }
-    if(this.state.min_liveness !== 0.0 || this.state.max_liveness !== 1.0) {
-        searchProps.min_liveness = this.state.min_liveness;
-        searchProps.max_liveness = this.state.max_liveness;
+    if (this.state.min_liveness !== 0.0 || this.state.max_liveness !== 1.0) {
+      searchProps.min_liveness = this.state.min_liveness;
+      searchProps.max_liveness = this.state.max_liveness;
     }
-    if(this.state.min_loudness !== -60 || this.state.max_loudness !== 0) {
-        searchProps.min_loudness = this.state.min_loudness;
-        searchProps.max_loudness = this.state.max_loudness;
+    if (this.state.min_loudness !== -60 || this.state.max_loudness !== 0) {
+      searchProps.min_loudness = this.state.min_loudness;
+      searchProps.max_loudness = this.state.max_loudness;
     }
-    if(this.state.min_popularity !== 0 || this.state.max_popularity !== 100) {
-        searchProps.min_popularity = this.state.min_popularity;
-        searchProps.max_popularity = this.state.max_popularity;
+    if (this.state.min_popularity !== 0 || this.state.max_popularity !== 100) {
+      searchProps.min_popularity = this.state.min_popularity;
+      searchProps.max_popularity = this.state.max_popularity;
     }
-    if(this.state.min_speechiness !== 0.0 || this.state.max_speechiness !== 1.0) {
-        searchProps.min_speechiness = this.state.min_speechiness;
-        searchProps.max_speechiness = this.state.max_speechiness;
+    if (this.state.min_speechiness !== 0.0 || this.state.max_speechiness !== 1.0) {
+      searchProps.min_speechiness = this.state.min_speechiness;
+      searchProps.max_speechiness = this.state.max_speechiness;
     }
-    if(this.state.min_tempo !== 40 || this.state.max_tempo !== 300) {
-        searchProps.min_tempo = this.state.min_tempo;
-        searchProps.max_tempo = this.state.max_tempo;
+    if (this.state.min_tempo !== 40 || this.state.max_tempo !== 300) {
+      searchProps.min_tempo = this.state.min_tempo;
+      searchProps.max_tempo = this.state.max_tempo;
     }
-    if(this.state.min_valence !== 0.0 || this.state.max_valence !== 1.0) {
-        searchProps.min_valence = this.state.min_valence;
-        searchProps.max_valence = this.state.max_valence;
+    if (this.state.min_valence !== 0.0 || this.state.max_valence !== 1.0) {
+      searchProps.min_valence = this.state.min_valence;
+      searchProps.max_valence = this.state.max_valence;
     }
-    if(this.state.min_duration !== 60000 || this.state.max_duration !== 1800000) {
-        searchProps.min_duration = this.state.min_duration;
-        searchProps.max_duration = this.state.max_duration;
+    if (this.state.min_duration !== 60000 || this.state.max_duration !== 1800000) {
+      searchProps.min_duration = this.state.min_duration;
+      searchProps.max_duration = this.state.max_duration;
     }
-    if(this.state.min_time_signature !== 1 || this.state.max_time_signature !== 13) {
+    if (this.state.min_time_signature !== 1 || this.state.max_time_signature !== 13) {
       searchProps.min_time_signature = this.state.min_time_signature;
       searchProps.max_time_signature = this.state.max_time_signature;
     }
-    if(!this.state.modeDisabled) searchProps.target_mode = this.state.target_mode;
-    if(!this.state.keyDisabled) searchProps.target_key = this.state.target_key;
+    if (!this.state.modeDisabled) searchProps.target_mode = this.state.target_mode;
+    if (!this.state.keyDisabled) searchProps.target_key = this.state.target_key;
 
-    console.log("(2) SENDING THESE SEARCH PROPS ==> ", searchProps);      
     this.musicSearch(searchProps);
   }
 
@@ -211,46 +200,140 @@ class PlaylistSearch extends Component {
   musicSearch(searchProps) {
     // API request to fetch songs
     spotifyApi.getRecommendations(searchProps)
-    .then( songs => {
-      console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.body.tracks[0]);
-      
-      // Get the IDs of all songs returned     
-      let songIds = songs.body.tracks.map( song => { return song.id });
-      console.log("(4) IDS OF SONGS: ", songIds[0]);
+      .then((songs) => {
+      // console.log("(3) SONGS FROM SPOTIFY REQUEST: ", songs.body.tracks[0]);
 
-      // API request to fetch audio features for each song 
-      spotifyApi.getAudioFeaturesForTracks(songIds)
-      .then( res => {              
-        console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.body.audio_features[0]);
-        
-        //Attach audio features to song
-        let songsWithFeatures = songs.body.tracks.map((song, index) => {
-          song.audio_features = res.body.audio_features[index];
-          return song;
-        });
+        // Get the IDs of all songs returned
+        const songIds = songs.body.tracks.map(song => song.id);
+        // console.log("(4) IDS OF SONGS: ", songIds[0]);
 
-        //Update state ONCE with songs and features
-        this.props.addSongs(songsWithFeatures); 
-        
-        this.props.navigation.navigate('ListResults');
-             
+        // API request to fetch audio features for each song
+        spotifyApi.getAudioFeaturesForTracks(songIds)
+          .then((res) => {
+            // console.log("(5) FEATURES FROM SPOTIFY REQUEST: ", res.body.audio_features[0]);
+
+            // Attach audio features to song
+            const songsWithFeatures = songs.body.tracks.map((song, index) => {
+              const songWithFeatures = song;
+              songWithFeatures.audio_features = res.body.audio_features[index];
+              return songWithFeatures;
+            });
+
+            // Update state ONCE with songs and features
+            this.props.addSongs(songsWithFeatures);
+            this.props.navigation.navigate('ListResults');
+          })
+          .catch((err) => { console.log('Error getting audio features: ', err); });
       })
-      .catch( err => { console.log("Error getting audio features: ", err) })                
-    })
-    .catch( err => { console.log("Error getting recommendations: ", err) });
+      .catch((err) => { console.log('Error getting recommendations: ', err); });
   }
 
   render() {
-    
+    const styles = {
+
+      /** VIEW CONTAINERS * */
+      containerStyle: {
+        backgroundColor: '#222222',
+        justifyContent: 'center',
+      },
+      requiredAlert: {
+        backgroundColor: '#1ed760',
+        padding: 10,
+        paddingBottom: 5,
+      },
+      requiredOptions: {
+        backgroundColor: '#222222',
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingBottom: 10,
+      },
+      inputView: {
+        marginTop: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#aaaaaa',
+      },
+      viewStyleLight: {
+        backgroundColor: '#333333',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        padding: 20,
+        paddingBottom: 10,
+      },
+      viewStyleDark: {
+        backgroundColor: '#222222',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        padding: 20,
+        paddingBottom: 10,
+      },
+
+
+      /** HEADERS AND TEXT * */
+      title: {
+        color: '#1ed760',
+        fontSize: 25,
+        textAlign: 'center',
+        margin: 10,
+      },
+      header: {
+        color: '#ffffff',
+        fontSize: 20,
+        textAlign: 'center',
+      },
+      subheader: {
+        color: '#ffffff',
+        fontSize: 15,
+        textAlign: 'center',
+        paddingTop: 10,
+
+      },
+      subheader2: {
+        color: '#ffffff',
+        fontSize: 15,
+        textAlign: 'center',
+        paddingBottom: 10,
+      },
+      subheader3: {
+        color: '#1ed760',
+        fontSize: 15,
+        textAlign: 'center',
+        paddingBottom: 10,
+        paddingTop: 10,
+      },
+      inputs: {
+        paddingTop: 0,
+        paddingBottom: 5,
+        color: '#aaaaaa',
+        fontSize: 16,
+      },
+
+      /** BUTTONS * */
+      button: {
+        color: '#ffffff',
+        fontSize: 20,
+      },
+      buttonContainer: {
+        marginBottom: 5,
+        padding: 10,
+        width: 100,
+        borderRadius: 20,
+        backgroundColor: '#ff2525',
+        justifyContent: 'center',
+      },
+      iconSize: 16,
+    };
+
     return (
       <ScrollView contentContainerStyle={ styles.containerStyle }>
 
         {/* REQUIRED OPTIONS
         *   A user is required to choose either a set of genres OR an artist
-        *   OR an album to conduct their search.       
+        *   OR an album to conduct their search.
         */}
         <View style={ styles.requiredOptions }>
-        
+
           {/* SEARCH BY OPTIONS */}
           <SearchByGenre />
 
@@ -258,17 +341,17 @@ class PlaylistSearch extends Component {
           <SearchByAlbum /> */}
 
           {/* SUBMIT BUTTON TOP */}
-          <View style={{justifyContent: 'center', alignItems: 'center'}}>
+          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
             <Button
             style={ styles.button }
-            containerStyle={ styles.buttonContainer } 
+            containerStyle={ styles.buttonContainer }
             onPress={ () => this.handleSubmit() } >
               Submit
             </Button>
-            
+
           </View>
 
-          <View style={{ paddingTop: 5}}>
+          <View style={{ paddingTop: 5 }}>
             <Text style={styles.subheader3}>OR</Text>
             <Text style={ styles.header }>Step 2: Fine Tune Your Search</Text>
           </View>
@@ -277,15 +360,15 @@ class PlaylistSearch extends Component {
 
         {/* OPTIONAL SEARCH CRITERIA
         *   A user can use the multisliders to fine tune search criteria
-        *   If the multisliders are not moved (at max and min), they are not 
+        *   If the multisliders are not moved (at max and min), they are not
         *   included in the search when submitted.  One point sliders must be
-        *   enabled using the corresponding checkbox in order to be used 
-        *   in the search.       
+        *   enabled using the corresponding checkbox in order to be used
+        *   in the search.
         */}
         <View style={ styles.optionalOptions }>
 
-          <HelpModal 
-            toggleHelpModal={ this.toggleHelpModal } 
+          <HelpModal
+            toggleHelpModal={ this.toggleHelpModal }
             isModalVisible={this.state.isModalVisible}
             feature={this.state.feature}
           />
@@ -294,15 +377,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Duration  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Duration  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("dur"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize} 
-                  onPress={ () => this.toggleHelpModal("dur") } />
+                onPress={() => { this.toggleHelpModal('dur'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('dur') } />
               </TouchableHighlight>
             </View>
 
@@ -312,11 +395,15 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 60000 }
               max={ 1800000 }
-              step={ 5000 } 
-              onValuesChange={ event => this.onRangeChange("duration", event) } 
+              step={ 5000 }
+              onValuesChange={ event => this.onRangeChange('duration', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ this.millisToMinutesAndSeconds(this.state.min_duration) } to { this.millisToMinutesAndSeconds(this.state.max_duration) } </Text>
+            <Text style={styles.subheader2}>
+              { this.millisToMinutesAndSeconds(this.state.min_duration) }
+               to
+               { this.millisToMinutesAndSeconds(this.state.max_duration) }
+            </Text>
 
           </View>
 
@@ -324,15 +411,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Acousticness  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Acousticness  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("ac"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("ac") } />
+                onPress={() => { this.toggleHelpModal('ac'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('ac') } />
               </TouchableHighlight>
             </View>
 
@@ -342,11 +429,15 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("acousticness", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('acousticness', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_acousticness * 100) } to { Math.floor(this.state.max_acousticness * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_acousticness * 100) }
+               to
+               { Math.floor(this.state.max_acousticness * 100) }
+            </Text>
 
           </View>
 
@@ -354,15 +445,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Danceability  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Danceability  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("dnc"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("dnc") } />
+                onPress={() => { this.toggleHelpModal('dnc'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('dnc') } />
               </TouchableHighlight>
             </View>
 
@@ -372,11 +463,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("danceability", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('danceability', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_danceability * 100) } to { Math.floor(this.state.max_danceability * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_danceability * 100) }
+               to { Math.floor(this.state.max_danceability * 100) }
+            </Text>
 
           </View>
 
@@ -384,15 +478,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Energy  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Energy  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("en"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("en") } />
+                onPress={() => { this.toggleHelpModal('en'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('en') } />
               </TouchableHighlight>
             </View>
 
@@ -402,11 +496,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("energy", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('energy', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_energy * 100) } to { Math.floor(this.state.max_energy * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_energy * 100) }
+               to { Math.floor(this.state.max_energy * 100) }
+            </Text>
 
           </View>
 
@@ -414,15 +511,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}> Instrumentalness  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}> Instrumentalness  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("inst"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("inst") } />
+                onPress={() => { this.toggleHelpModal('inst'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('inst') } />
               </TouchableHighlight>
             </View>
 
@@ -432,11 +529,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("instrumentalness", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('instrumentalness', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_instrumentalness * 100) } to { Math.floor(this.state.max_instrumentalness * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_instrumentalness * 100) }
+               to { Math.floor(this.state.max_instrumentalness * 100) }
+            </Text>
 
           </View>
 
@@ -444,16 +544,16 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Liveness  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Liveness  </Text>
               <TouchableHighlight
-                
-                onPress={() => { this.toggleHelpModal("live"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("live") } />
+
+                onPress={() => { this.toggleHelpModal('live'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('live') } />
               </TouchableHighlight>
             </View>
 
@@ -463,11 +563,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("liveness", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('liveness', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_liveness * 100) } to { Math.floor(this.state.max_liveness * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_liveness * 100) }
+               to { Math.floor(this.state.max_liveness * 100) }
+            </Text>
 
           </View>
 
@@ -475,15 +578,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Loudness  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Loudness  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("loud"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("loud") } />
+                onPress={() => { this.toggleHelpModal('loud'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('loud') } />
               </TouchableHighlight>
             </View>
 
@@ -493,11 +596,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ -60.0 }
               max={ 0.0 }
-              step={ 0.5 } 
-              onValuesChange={ event => this.onRangeChange("loudness", event) } 
+              step={ 0.5 }
+              onValuesChange={ event => this.onRangeChange('loudness', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ this.state.min_loudness } to { this.state.max_loudness } dB</Text>
+            <Text style={styles.subheader2}>
+              { this.state.min_loudness }
+               to { this.state.max_loudness } dB
+            </Text>
 
           </View>
 
@@ -505,15 +611,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Popularity  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Popularity  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("pop"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("pop") } />
+                onPress={() => { this.toggleHelpModal('pop'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('pop') } />
               </TouchableHighlight>
             </View>
 
@@ -523,11 +629,13 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0 }
               max={ 100 }
-              step={ 1 } 
-              onValuesChange={ event => this.onRangeChange("popularity", event) } 
+              step={ 1 }
+              onValuesChange={ event => this.onRangeChange('popularity', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ this.state.min_popularity } to { this.state.max_popularity }</Text>
+            <Text style={styles.subheader2}>
+              { this.state.min_popularity } to { this.state.max_popularity }
+            </Text>
 
           </View>
 
@@ -535,15 +643,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Speechiness  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Speechiness  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("sp"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("sp") } />
+                onPress={() => { this.toggleHelpModal('sp'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('sp') } />
               </TouchableHighlight>
             </View>
 
@@ -553,11 +661,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("speechiness", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('speechiness', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_speechiness * 100) } to { Math.floor(this.state.max_speechiness * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_speechiness * 100) }
+               to { Math.floor(this.state.max_speechiness * 100) }
+            </Text>
 
           </View>
 
@@ -565,15 +676,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Tempo  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Tempo  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("temp"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("temp") } />
+                onPress={() => { this.toggleHelpModal('temp'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('temp') } />
               </TouchableHighlight>
             </View>
 
@@ -583,11 +694,13 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 40 }
               max={ 300 }
-              step={ 1 } 
-              onValuesChange={ event => this.onRangeChange("tempo", event) } 
+              step={ 1 }
+              onValuesChange={ event => this.onRangeChange('tempo', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ this.state.min_tempo } to { this.state.max_tempo } bpm</Text>
+            <Text style={styles.subheader2}>
+              { this.state.min_tempo } to { this.state.max_tempo } bpm
+            </Text>
 
           </View>
 
@@ -595,15 +708,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Valence  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Valence  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("val"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("val") } />
+                onPress={() => { this.toggleHelpModal('val'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('val') } />
               </TouchableHighlight>
             </View>
 
@@ -613,11 +726,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 0.0 }
               max={ 1.0 }
-              step={ 0.01 } 
-              onValuesChange={ event => this.onRangeChange("valence", event) } 
+              step={ 0.01 }
+              onValuesChange={ event => this.onRangeChange('valence', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ Math.floor(this.state.min_valence * 100) } to { Math.floor(this.state.max_valence * 100) }</Text>
+            <Text style={styles.subheader2}>
+              { Math.floor(this.state.min_valence * 100) }
+               to { Math.floor(this.state.max_valence * 100) }
+            </Text>
 
           </View>
 
@@ -625,15 +741,15 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.header}>Time Signature  </Text> 
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.header}>Time Signature  </Text>
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("sig"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("sig") } />
+                onPress={() => { this.toggleHelpModal('sig'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('sig') } />
               </TouchableHighlight>
             </View>
 
@@ -643,11 +759,14 @@ class PlaylistSearch extends Component {
               sliderLength={ this.state.sliderLength }
               min={ 1 }
               max={ 13 }
-              step={ 1 } 
-              onValuesChange={ event => this.onRangeChange("time_signature", event) } 
+              step={ 1 }
+              onValuesChange={ event => this.onRangeChange('time_signature', event) }
               allowOverlap />
 
-            <Text style={styles.subheader2}>{ this.state.min_time_signature } to { this.state.max_time_signature } beats per measure</Text>
+            <Text style={styles.subheader2}>
+              { this.state.min_time_signature }
+               to { this.state.max_time_signature } beats per measure
+            </Text>
 
           </View>
 
@@ -655,24 +774,26 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
 
             {/* Header, Disable CheckBox and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
               <CheckBox
                 title='Key'
                 checked={!this.state.keyDisabled}
                 checkedColor='#1ed760'
-                onPress={ () => this.toggleAttr("key") }
-                containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
+                onPress={ () => this.toggleAttr('key') }
+                containerStyle={{
+                  backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0,
+                }}
                 textStyle={styles.header}
 
               />
-              
+
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("key"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("key") } />
+                onPress={() => { this.toggleHelpModal('key'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('key') } />
               </TouchableHighlight>
             </View>
 
@@ -680,11 +801,11 @@ class PlaylistSearch extends Component {
               className="key"
               value={ this.state.target_key }
               disabled={ this.state.keyDisabled }
-              style={{ width: this.state.sliderLength }}         
+              style={{ width: this.state.sliderLength }}
               minimumValue={ 0 }
               maximumValue={ 11 }
-              step={ 1 } 
-              onValueChange={ event => this.onSliderChange("key", event) } />
+              step={ 1 }
+              onValueChange={ event => this.onSliderChange('key', event) } />
 
             <Text style={styles.subheader2}>{ this.convertKey(this.state.target_key) }</Text>
 
@@ -694,24 +815,26 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleDark }>
 
             {/* Header and Help Icon */}
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
             <CheckBox
                 title='Mode'
                 checked={!this.state.modeDisabled}
                 checkedColor='#1ed760'
-                onPress={ () => this.toggleAttr("mode") }
-                containerStyle={{backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0}}
+                onPress={ () => this.toggleAttr('mode') }
+                containerStyle={{
+                  backgroundColor: 'transparent', borderWidth: 0, padding: 0, marginRight: 0,
+                }}
                 textStyle={styles.header}
 
-              /> 
+              />
               <TouchableHighlight
-                onPress={() => { this.toggleHelpModal("mode"); }} >
-                <Icon 
-                  name='help-outline' 
-                  color='#1ed760' 
+                onPress={() => { this.toggleHelpModal('mode'); }} >
+                <Icon
+                  name='help-outline'
+                  color='#1ed760'
                   paddingLeft={20}
-                  size={styles.iconSize}  
-                  onPress={ () => this.toggleHelpModal("mode") } />
+                  size={styles.iconSize}
+                  onPress={ () => this.toggleHelpModal('mode') } />
               </TouchableHighlight>
             </View>
 
@@ -722,10 +845,13 @@ class PlaylistSearch extends Component {
               style={{ width: this.state.sliderLength }}
               min={ 0 }
               max={ 1 }
-              step={ 1 } 
-              onValueChange={ event => this.onSliderChange("mode", event) } />
+              step={ 1 }
+              onValueChange={ event => this.onSliderChange('mode', event) } />
 
-            { this.state.target_mode === 0 ? <Text style={styles.subheader2}>Minor</Text> : <Text style={styles.subheader2}>Major</Text> }
+            { this.state.target_mode === 0
+              ? <Text style={styles.subheader2}>Minor</Text>
+              : <Text style={styles.subheader2}>Major</Text>
+            }
 
           </View>
 
@@ -733,7 +859,7 @@ class PlaylistSearch extends Component {
           <View style={ styles.viewStyleLight }>
             <Button
               style={ styles.button }
-              containerStyle={ styles.buttonContainer } 
+              containerStyle={ styles.buttonContainer }
               onPress={ () => this.handleSubmit() }
             >
               Submit
@@ -741,115 +867,18 @@ class PlaylistSearch extends Component {
           </View>
 
           </View>
-      
+
       </ScrollView>
     );
   }
 }
 
-const styles = {
-      
-  /** VIEW CONTAINERS **/
-  containerStyle: {
-    backgroundColor: '#222222', 
-    justifyContent: 'center',
-  },
-  requiredAlert: {
-    backgroundColor: '#1ed760', 
-    padding: 10,
-    paddingBottom: 5
-  },
-  requiredOptions: {
-    backgroundColor: '#222222', 
-    paddingLeft: 20,            
-    paddingRight: 20, 
-    paddingBottom: 10           
-  },
-  inputView: {
-    marginTop: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#aaaaaa',       
-  },
-  viewStyleLight: {  
-    backgroundColor: '#333333',   
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    padding: 20,
-    paddingBottom: 10
-  },
-  viewStyleDark: {    
-    backgroundColor: '#222222', 
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    padding: 20,
-    paddingBottom: 10
-  },
-  
 
-  /** HEADERS AND TEXT **/
-  title: {
-    color: '#1ed760',
-    fontSize: 25,
-    textAlign: 'center',
-    margin: 10
-  },
-  header: {
-    color: '#ffffff',
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  subheader: {
-    color: '#ffffff',
-    fontSize: 15,
-    textAlign: 'center',
-    paddingTop: 10,
-
-  },
-  subheader2: {
-    color: '#ffffff',
-    fontSize: 15,
-    textAlign: 'center',
-    paddingBottom: 10
-  },
-  subheader3: {
-    color: '#1ed760',
-    fontSize: 15,
-    textAlign: 'center',
-    paddingBottom: 10,
-    paddingTop: 10
-  },
-  inputs: {
-    paddingTop: 0,
-    paddingBottom: 5,
-    color: '#aaaaaa',
-    fontSize: 16,
-  },
-
-  /** BUTTONS **/
-  button: {
-    color: '#ffffff',      
-    fontSize: 20
-  },
-  buttonContainer: { 
-    marginBottom: 5,
-    padding: 10, 
-    width: 100,
-    borderRadius: 20, 
-    backgroundColor: '#ff2525',
-    justifyContent: 'center'
-  },
-  iconSize: 16
-};
-
-const mapStateToProps = state => {
-  return { 
-    allGenres: state.allGenres,
-    selectedGenres: state.selectedGenres,
-    selectGenre: state.selectGenre,
-    addSongs: state.addSongs,
-    songs: state.songs
-  }
-};
+const mapStateToProps = state => ({
+  allGenres: state.allGenres,
+  selectedGenres: state.selectedGenres,
+  selectGenre: state.selectGenre,
+  addSongs: state.addSongs,
+  songs: state.songs,
+});
 export default connect(mapStateToProps, actions)(PlaylistSearch);
