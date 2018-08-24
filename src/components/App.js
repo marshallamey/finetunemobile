@@ -7,7 +7,7 @@ import LoadingView from '../screens/LoadingView';
 
 const App = () => (
     <Provider store={store}>
-      <PersistGate loading={<LoadingView />} persistor={persistor}>
+      <PersistGate persistor={persistor}>
         <RootStack />
       </PersistGate>
     </Provider>

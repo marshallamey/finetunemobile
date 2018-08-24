@@ -15,16 +15,13 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import AppLink from 'react-native-app-link';
 import axios from 'axios';
 import SavePlaylistForm from '../components/SavePlaylistForm';
+import ExpiredModal from '../components/ExpiredModal';
 import MusicPlayer from '../components/MusicPlayer';
 import * as actions from '../actions';
 
-
 const spotifyApi = new SpotifyWebApi();
 
-
-
 class PlaylistResults extends Component {
-  /** CONSTRUCTOR() */
   constructor(props) {
     super(props);
 
@@ -32,6 +29,7 @@ class PlaylistResults extends Component {
       deviceID: '',
       playlistName: '',
       positionValue: 0,
+      expiredAlert: false,
 
       playlistSaved: false,
       playlistURI: '',
@@ -46,18 +44,43 @@ class PlaylistResults extends Component {
       songIndex: 0,
     };
 
-    spotifyApi.setAccessToken(this.props.accessToken);
+    if (this.isTokenValid()) spotifyApi.setAccessToken(this.props.accessToken);
 
     this.onNameChange = this.onNameChange.bind(this);
     this.playNext = this.playNext.bind(this);
     this.playPrevious = this.playPrevious.bind(this);
     this.savePlaylist = this.savePlaylist.bind(this);
     this.playSong = this.playSong.bind(this);
-    this.playAllSongs = this.playAllSongs.bind(this);
+    // this.playAllSongs = this.playAllSongs.bind(this);
     this.pauseSong = this.pauseSong.bind(this);
     this.resumeSong = this.resumeSong.bind(this);
+    this.toggleExpiredAlert = this.toggleExpiredAlert.bind(this);
+
     
   }
+
+  isTokenValid() {
+    const currentTime = new Date().getTime();
+    if (currentTime < this.props.expireTime) {
+      console.log('FINETUNE APP:: accessToken is still valid', this.props.expireTime - currentTime);     
+      return true;
+    }
+    // Show expiredModal
+    this.toggleExpiredAlert();
+    console.log('FINETUNE APP:: accessToken is expired!  Sending to auth flow', this.props.expireTime - currentTime);  
+    // Close modal and go to auth flow after 2 seconds
+    setTimeout(() => {
+      this.toggleExpiredAlert();
+      NativeModules.SpotifyAuth.clearAccessToken();
+      NativeModules.SpotifyAuth.authenticateUser();    
+    }, 2000);
+    return false;
+  }
+     /* FUNCTION(): Show Modal to validate genre selection */
+     toggleExpiredAlert() {
+      this.setState({ expiredAlert: !this.state.expiredAlert });
+    }
+
 
   /** FUNCTION(): Change state of playlistName */
   onNameChange(name) {
@@ -92,65 +115,70 @@ class PlaylistResults extends Component {
    *             MUSIC PLAYER FUNCTIONS                   *
    ****************************************************** */
 
-  playAllSongs() {
+  // playAllSongs() {
 
-    const songURIs = this.props.songs.map(song => song.uri);
-    // Send a Spotify request to play the song
-    spotifyApi.play({
-      device_id: this.props.deviceID,
-      uris: songURIs
-    })
+  //   const songURIs = this.props.songs.map(song => song.uri);
+  //   // Send a Spotify request to play the song
+  //   spotifyApi.play({
+  //     device_id: this.props.deviceID,
+  //     uris: songURIs
+  //   })
 
-      .then(() => {
-        setTimeout(() => this.checkForPlayback(), 2000);       
-      })
-      .catch((err) => {
-        console.log('COULD NOT PLAY THE SONG!', err);
-        AppLink.maybeOpenURL(this.props.songs[0].uri, {
-          appName: 'Spotify',
-          appStoreId: '324684580',
-          playStoreId: 'com.spotify.music',
-        })
-          .catch((err) => {
-            console.log('FINETUNE APP:: Error opening Spotify', err);
-          });
-      });
-  }
+  //     .then(() => {
+  //       setTimeout(() => this.checkForPlayback(), 2000);       
+  //     })
+  //     .catch((err) => {
+  //       console.log('COULD NOT PLAY THE SONG!', err);
+  //       AppLink.maybeOpenURL(this.props.songs[0].uri, {
+  //         appName: 'Spotify',
+  //         appStoreId: '324684580',
+  //         playStoreId: 'com.spotify.music',
+  //       })
+  //         .catch((err) => {
+  //           console.log('FINETUNE APP:: Error opening Spotify', err);
+  //         });
+  //     });
+  // }
 
   /** FUNCTION(): Make a Spotify API request to play a song */
   playSong(index) {
     const song = this.props.songs[index];
-    this.setState({
-      playing: true,
-      artistName: song.artists[0].name,
-      albumName: song.album.name,
-      trackName: song.name,
-      albumCover: song.album.images[1].url,
-      songIndex: index,
-    });
-
-    // Send a Spotify request to play the song
-    axios({
-      method: 'PUT',
-      url: 'https://api.spotify.com/v1/me/player/play',
-      headers: { Authorization: `Bearer ${this.props.accessToken}` },
-      params: { device_id: this.props.deviceID },
-      data: { uris: [song.uri] },
-    })
-      .then(() => {
-        setTimeout(() => this.checkForPlayback(), 2000);       
+    if (!this.state.playing || index !== this.state.songIndex) {
+      this.setState({ playing: true, songIndex: index });
+      // Send a Spotify request to play the song
+      axios({
+        method: 'PUT',
+        url: 'https://api.spotify.com/v1/me/player/play',
+        headers: { Authorization: `Bearer ${this.props.accessToken}` },
+        params: { device_id: this.props.deviceID },
+        data: { uris: [song.uri] },
       })
-      .catch((err) => {
-        console.log('COULD NOT PLAY THE SONG!', err);
-        AppLink.maybeOpenURL(song.uri, {
-          appName: 'Spotify',
-          appStoreId: '324684580',
-          playStoreId: 'com.spotify.music',
+        .then(() => {
+          setTimeout(() => this.checkForPlayback(), 2000);       
         })
-          .catch((err) => {
-            console.log('FINETUNE APP:: Error opening Spotify', err);
-          });
-      });
+        .catch((err) => {
+          console.log('COULD NOT PLAY THE SONG!', err);
+          AppLink.maybeOpenURL(song.uri, {
+            appName: 'Spotify',
+            appStoreId: '324684580',
+            playStoreId: 'com.spotify.music',
+          })
+            .catch((err) => {
+              console.log('FINETUNE APP:: Error opening Spotify', err);
+            });
+        });
+    } else {
+      axios({
+        method: 'PUT',
+        url: 'https://api.spotify.com/v1/me/player/pause',
+        headers: { Authorization: `Bearer ${this.props.accessToken}` },
+        params: { device_id: this.props.deviceID },
+      })
+        .then(() => {
+          this.setState({ playing: false })
+        })
+        .catch((err) => { console.log('COULD NOT PAUSE THE SONG!', err); });
+    }
   }
 
   checkForPlayback() {
@@ -192,16 +220,7 @@ class PlaylistResults extends Component {
 
   /** FUNCTION(): Make a Spotify API request to pause a song */
   pauseSong() {
-    axios({
-      method: 'PUT',
-      url: 'https://api.spotify.com/v1/me/player/pause',
-      headers: { Authorization: `Bearer ${this.props.accessToken}` },
-      params: { device_id: this.props.deviceID },
-    })
-      .then(() => {
-        this.setState({ playing: false })
-      })
-      .catch((err) => { console.log('COULD NOT PAUSE THE SONG!', err); });
+    
   }
 
   /** FUNCTION(): Delete song from playlist */
@@ -302,12 +321,12 @@ class PlaylistResults extends Component {
       leftButtonContainerStyle={{ backgroundColor: '#ff2525' }} >
 
         <ListItem
+        rightIcon={{style: {padding: 10}}}
           avatar={{ uri: albumCover }}
           title={ song.name }
           titleStyle={{ fontSize: 16, color: '#bbbbbb' }}
           subtitle={ song.artists[0].name }
           subtitleStyle={{ fontSize: 14, color: '#9e9e9e' }}
-          rightTitle='Details'
           onPress={ () => this.playSong(index)}
           onPressRightIcon={ () => this.props.navigation.navigate('SongDetail', {
             song,
@@ -332,7 +351,7 @@ class PlaylistResults extends Component {
 
     return (
       <ScrollView style={styles.containerStyle}>
-
+        <ExpiredModal/>
         {/* PLAYLIST SAVED ALERT */}
         <View style={styles.modalContainer}>
           <Modal
@@ -375,7 +394,7 @@ class PlaylistResults extends Component {
           </Modal>
         </View>
 
-        <View style={styles.playerStyle}>
+        {/* <View style={styles.playerStyle}>
           <MusicPlayer
             pauseSong={this.pauseSong}
             playSong={this.playSong}
@@ -390,7 +409,7 @@ class PlaylistResults extends Component {
             albumCover={this.state.albumCover}
             position={this.state.position }
           />
-        </View>
+        </View> */}
 
         <View style={styles.formStyle}>
           <SavePlaylistForm
@@ -402,6 +421,8 @@ class PlaylistResults extends Component {
         </View>
 
         <View>
+          <Text style={{ fontSize: 15, textAlign: 'center', color: '#dddddd' }}>Tap to play/pause</Text>
+          <Text style={{ fontSize: 15, textAlign: 'center', color: '#dddddd' }}>Swipe right to delete</Text>
           { tracks }
 
         </View>
@@ -413,6 +434,7 @@ class PlaylistResults extends Component {
 
 const mapStateToProps = state => ({
   accessToken: state.accessToken,
+  expireTime: state.expireTime,
   songs: state.songs,
   addSongs: state.addSongs,
   deviceID: state.deviceID,

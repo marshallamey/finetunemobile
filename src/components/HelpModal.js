@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { View, Text, TouchableHighlight } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import  Modal from 'react-native-modal';
 import { Icon } from 'react-native-elements';
 import featuresDesc from '../js/featuresDesc';
@@ -22,8 +22,8 @@ const HelpModal = (props) => {
             {/* Modal Header and Close Icon */}
             
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingLeft: 20, paddingRight: 20, borderBottomColor: '#aaaaaa', borderBottomWidth: 1}}>
-              <Text style={{fontSize: 18}}>{featuresDesc[props.feature].name}</Text>
-              <TouchableHighlight
+              <Text style={{fontSize: 18 }}>{featuresDesc[props.feature].name}</Text>
+              <TouchableOpacity
                 onPress={() => {
                   props.toggleHelpModal('none');
                 }} >
@@ -32,12 +32,12 @@ const HelpModal = (props) => {
                   color='#1ed760' 
                   size={20} 
                 />
-              </TouchableHighlight>
+              </TouchableOpacity>
             </View>
             
             {/* Modal Body */}
             <View style={{padding: 20}}>
-              <Text>{featuresDesc[props.feature].desc}</Text>
+              <Text style={{ fontSize: 16, lineHeight: 22 }}>{featuresDesc[props.feature].desc}</Text>
             </View> 
 
         </View>               

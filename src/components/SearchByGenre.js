@@ -58,8 +58,9 @@ const styles = {
       
   /** VIEW CONTAINERS **/
   inputView: {
-    marginTop: 20,
-    marginBottom: 20       
+    backgroundColor: '#333333',
+    padding: 20,
+    marginBottom: 20,      
   },
   header: {
     color: '#ffffff',

@@ -11,6 +11,7 @@ import Modal from 'react-native-modal';
 import SpotifyWebApi from 'spotify-web-api-node';
 import AppLink from 'react-native-app-link';
 import HelpModal from '../components/HelpModal';
+import ExpiredModal from '../components/ExpiredModal';
 import * as actions from '../actions';
 
 
@@ -24,12 +25,16 @@ class Song extends Component {
       isModalVisible: false,
       feature: 'none',
       songSaved: false,
+      expiredAlert: false,
+
     };
 
-    spotifyApi.setAccessToken(this.props.accessToken);
+    if (this.isTokenValid()) spotifyApi.setAccessToken(this.props.accessToken);
 
     this.toggleHelpModal = this.toggleHelpModal.bind(this);
     this.resetSongSaved = this.resetSongSaved.bind(this);
+    this.toggleExpiredAlert = this.toggleExpiredAlert.bind(this);
+
   }
 
   static get propTypes() {
@@ -76,10 +81,33 @@ class Song extends Component {
     return pitchNotation[note];
   }
 
+  isTokenValid() {
+    const currentTime = new Date().getTime();
+    if (currentTime < this.props.expireTime) {
+      console.log('FINETUNE APP:: accessToken is still valid', this.props.expireTime - currentTime);     
+      return true;
+    }
+    // Show expiredModal
+    this.toggleExpiredAlert();
+    console.log('FINETUNE APP:: accessToken is expired!  Sending to auth flow', this.props.expireTime - currentTime);  
+    // Close modal and go to auth flow after 2 seconds
+    setTimeout(() => {
+      this.toggleExpiredAlert();
+      NativeModules.SpotifyAuth.clearAccessToken();
+      NativeModules.SpotifyAuth.authenticateUser();    
+    }, 2000);
+    return false;
+  }
+
   /* FUNCTION(): Show Modal with more information about an attribute */
   toggleHelpModal(id) {
     this.setState({ isModalVisible: !this.state.isModalVisible, feature: id });
   }
+
+     /* FUNCTION(): Show Modal to validate genre selection */
+     toggleExpiredAlert() {
+      this.setState({ expiredAlert: !this.state.expiredAlert });
+    }
 
 
   /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
@@ -147,7 +175,7 @@ class Song extends Component {
 
     return (
       <ScrollView style={styles.containerStyle}>
-
+        <ExpiredModal/>
         {/* SONG SAVED ALERT */}
         <View style={styles.modalContainer}>
           <Modal
@@ -383,6 +411,7 @@ class Song extends Component {
 
 const mapStateToProps = state => ({
   accessToken: state.accessToken,
+  expireTime: state.expireTime,
   songs: state.songs,
   addSongs: state.addSongs,
 });

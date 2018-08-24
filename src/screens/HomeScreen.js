@@ -11,6 +11,7 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import * as actions from '../actions';
 import logo from '../img/finetune-banner-logo.jpg';
 import axios from 'axios';
+import spotifyLogo from '../img/spotify-logo.png';
 
 const spotifyApi = new SpotifyWebApi();
 let accessToken = '';
@@ -255,6 +256,11 @@ class HomeScreen extends Component {
             containerViewStyle={ styles.containerStyle }
             onPress={ () => this.props.navigation.navigate('ListResults') }
           />
+
+          <View style={{flexDirection: 'row', alignItems: 'center' }}>
+            <Image source={spotifyLogo} style={{ width: 35, height: 35, marginRight: 10 }}/>
+            <Text style={{ color: '#dddddd' }}>Powered by Spotify</Text>
+          </View>
 
           {/* <Button
             title='Look Up Song Details'

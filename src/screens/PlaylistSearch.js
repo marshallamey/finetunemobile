@@ -6,17 +6,18 @@ import {
   View,
   Text,
   TouchableHighlight,
+  NativeModules,
 } from 'react-native';
 import { CheckBox, Icon, Button } from 'react-native-elements';
 import Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import SpotifyWebApi from 'spotify-web-api-node';
 import HelpModal from '../components/HelpModal';
+import ExpiredModal from '../components/ExpiredModal';
 import SearchByGenre from '../components/SearchByGenre';
 import * as actions from '../actions';
 
 const spotifyApi = new SpotifyWebApi();
-
 
 class PlaylistSearch extends Component {
   constructor(props) {
@@ -54,14 +55,16 @@ class PlaylistSearch extends Component {
       keyDisabled: true,
       modeDisabled: true,
 
+      expiredAlert: false,
       genreAlert: false,
       isModalVisible: false,
       feature: 'none',
     };
-    spotifyApi.setAccessToken(this.props.accessToken);
+    if (this.isTokenValid()) spotifyApi.setAccessToken(this.props.accessToken);
 
     this.toggleHelpModal = this.toggleHelpModal.bind(this);
     this.toggleGenreAlert = this.toggleGenreAlert.bind(this);
+    this.toggleExpiredAlert = this.toggleExpiredAlert.bind(this);
   }
 
   /** REACT NAVIGATION HEADER */
@@ -72,6 +75,24 @@ class PlaylistSearch extends Component {
     headerTintColor: '#ffffff',
     headerRight: (<View></View>),
   };
+
+  isTokenValid() {
+    const currentTime = new Date().getTime();
+    if (currentTime < this.props.expireTime) {
+      console.log('FINETUNE APP:: accessToken is still valid', this.props.expireTime - currentTime);     
+      return true;
+    }
+    // Show expiredModal
+    this.toggleExpiredAlert();
+    console.log('FINETUNE APP:: accessToken is expired!  Sending to auth flow', this.props.expireTime - currentTime);  
+    // Close modal and go to auth flow after 2 seconds
+    setTimeout(() => {
+      this.toggleExpiredAlert();
+      NativeModules.SpotifyAuth.clearAccessToken();
+      NativeModules.SpotifyAuth.authenticateUser();    
+    }, 2000);
+    return false;
+  }
 
 
   /* FUNCTION: Change state of song attributes when user moves any MultiSlider */
@@ -108,6 +129,11 @@ class PlaylistSearch extends Component {
   /* FUNCTION(): Show Modal to validate genre selection */
   toggleGenreAlert() {
     this.setState({ genreAlert: !this.state.genreAlert });
+  }
+
+   /* FUNCTION(): Show Modal to validate genre selection */
+   toggleExpiredAlert() {
+    this.setState({ expiredAlert: !this.state.expiredAlert });
   }
 
   /* FUNCTION(): Display the proper note for key attribute */
@@ -251,8 +277,7 @@ class PlaylistSearch extends Component {
       },
       requiredOptions: {
         backgroundColor: '#222222',
-        paddingLeft: 20,
-        paddingRight: 20,
+        
         paddingBottom: 10,
       },
       inputView: {
@@ -324,9 +349,8 @@ class PlaylistSearch extends Component {
       },
       buttonContainer: {
         marginBottom: 5,
-        padding: 10,
-        width: 100,
-        borderRadius: 20,
+        padding: 0,
+        width: 150,
         backgroundColor: '#ff2525',
         justifyContent: 'center',
       },
@@ -345,6 +369,7 @@ class PlaylistSearch extends Component {
 
     return (
       <ScrollView contentContainerStyle={ styles.containerStyle }>
+        <ExpiredModal/>
         <View style={styles.modalContainer}>
           <Modal
             transparent={true}
@@ -386,10 +411,12 @@ class PlaylistSearch extends Component {
           <SearchByAlbum /> */}
 
           {/* SUBMIT BUTTON TOP */}
-          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 10 }}>
             <Button
               title='Submit'
               backgroundColor='#ff2525'
+              borderRadius={40}
+              containerViewStyle={styles.buttonContainer}
               color='#ffffff'
               fontSize={20}
               raised
@@ -397,7 +424,7 @@ class PlaylistSearch extends Component {
             />
           </View>
 
-          <View style={{ paddingTop: 5 }}>
+          <View style={{ paddingTop: 5, paddingBottom: 5 }}>
             <Text style={styles.subheader3}>OR</Text>
             <Text style={ styles.header }>Step 2: Fine Tune Your Search</Text>
           </View>
@@ -446,9 +473,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { PlaylistSearch.millisToMinutesAndSeconds(this.state.min_duration) }
-               to
-               { PlaylistSearch.millisToMinutesAndSeconds(this.state.max_duration) }
+              { PlaylistSearch.millisToMinutesAndSeconds(this.state.min_duration) } to { PlaylistSearch.millisToMinutesAndSeconds(this.state.max_duration) }
             </Text>
 
           </View>
@@ -480,9 +505,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_acousticness * 100) }
-               to
-               { Math.floor(this.state.max_acousticness * 100) }
+              { Math.floor(this.state.min_acousticness * 100) } to { Math.floor(this.state.max_acousticness * 100) }
             </Text>
 
           </View>
@@ -514,8 +537,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_danceability * 100) }
-               to { Math.floor(this.state.max_danceability * 100) }
+              { Math.floor(this.state.min_danceability * 100) } to { Math.floor(this.state.max_danceability * 100) }
             </Text>
 
           </View>
@@ -547,8 +569,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_energy * 100) }
-               to { Math.floor(this.state.max_energy * 100) }
+              { Math.floor(this.state.min_energy * 100) } to { Math.floor(this.state.max_energy * 100) }
             </Text>
 
           </View>
@@ -580,8 +601,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_instrumentalness * 100) }
-               to { Math.floor(this.state.max_instrumentalness * 100) }
+              { Math.floor(this.state.min_instrumentalness * 100) } to { Math.floor(this.state.max_instrumentalness * 100) }
             </Text>
 
           </View>
@@ -614,8 +634,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_liveness * 100) }
-               to { Math.floor(this.state.max_liveness * 100) }
+              { Math.floor(this.state.min_liveness * 100) } to { Math.floor(this.state.max_liveness * 100) }
             </Text>
 
           </View>
@@ -647,8 +666,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { this.state.min_loudness }
-               to { this.state.max_loudness } dB
+              { this.state.min_loudness } to { this.state.max_loudness } dB
             </Text>
 
           </View>
@@ -712,8 +730,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_speechiness * 100) }
-               to { Math.floor(this.state.max_speechiness * 100) }
+              { Math.floor(this.state.min_speechiness * 100) } to { Math.floor(this.state.max_speechiness * 100) }
             </Text>
 
           </View>
@@ -777,8 +794,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { Math.floor(this.state.min_valence * 100) }
-               to { Math.floor(this.state.max_valence * 100) }
+              { Math.floor(this.state.min_valence * 100) } to { Math.floor(this.state.max_valence * 100) }
             </Text>
 
           </View>
@@ -810,8 +826,7 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { this.state.min_time_signature }
-               to { this.state.max_time_signature } beats per measure
+              { this.state.min_time_signature } to { this.state.max_time_signature } beats per measure
             </Text>
 
           </View>
@@ -906,6 +921,8 @@ class PlaylistSearch extends Component {
             <Button
               title='Submit'
               backgroundColor='#ff2525'
+              borderRadius={40}
+              containerViewStyle={styles.buttonContainer}
               color='#ffffff'
               fontSize={20}
               raised
