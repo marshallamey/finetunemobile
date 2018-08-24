@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import {
-  ScrollView,
-  Text,
-  Image,
-  View,
-  AsyncStorage,
+  ScrollView, Text, Image, View,
 } from 'react-native';
 import {
   Card, List, ListItem, Button, Icon,
@@ -13,6 +11,7 @@ import Modal from 'react-native-modal';
 import SpotifyWebApi from 'spotify-web-api-node';
 import AppLink from 'react-native-app-link';
 import HelpModal from '../components/HelpModal';
+import * as actions from '../actions';
 
 
 const spotifyApi = new SpotifyWebApi();
@@ -27,13 +26,29 @@ class Song extends Component {
       songSaved: false,
     };
 
-    AsyncStorage.getItem('accessToken', (err, token) => {
-      spotifyApi.setAccessToken(token);
-    });
+    spotifyApi.setAccessToken(this.props.accessToken);
 
     this.toggleHelpModal = this.toggleHelpModal.bind(this);
     this.resetSongSaved = this.resetSongSaved.bind(this);
   }
+
+  static get propTypes() {
+    return {
+      navigation: PropTypes.any,
+      accessToken: PropTypes.any,
+      songs: PropTypes.any,
+      addSongs: PropTypes.func,
+    };
+  }
+
+  /** REACT NAVIGATION HEADER */
+  static navigationOptions = {
+    title: 'Song Details',
+    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
+    headerStyle: { backgroundColor: '#222222' },
+    headerTintColor: '#ffffff',
+    headerRight: (<View></View>),
+  };
 
   // Display the proper time for duration attribute
   static millisToMinutesAndSeconds(millis) {
@@ -70,29 +85,20 @@ class Song extends Component {
   /** FUNCTION(): Make a Spotify API request to save array of tracks to library */
   saveTracks(songIds) {
     spotifyApi.addToMySavedTracks(songIds)
-      .then((song) => {
+      .then(() => {
         this.setState({ songSaved: true });
       })
       .catch((err) => { console.log('Error saving track(s) to library: ', err); });
   }
 
+
   resetSongSaved() {
     this.setState({ songSaved: false });
   }
 
-  /** REACT NAVIGATION HEADER */
-  static navigationOptions = {
-    title: 'Song Details',
-    headerTitleStyle: { flex: 1, textAlign: 'center', alignSelf: 'center' },
-    headerStyle: { backgroundColor: '#222222' },
-    headerTintColor: '#ffffff',
-    headerRight: (<View></View>),
-
-  };
 
   render() {
     const styles = {
-
       /** VIEW CONTAINERS * */
       containerStyle: {
         backgroundColor: '#222222',
@@ -112,7 +118,6 @@ class Song extends Component {
       modalContainer: {
         flex: 1,
       },
-    
       /** HEADERS AND TEXT * */
       title: {
         color: '#222222',
@@ -123,7 +128,6 @@ class Song extends Component {
         fontSize: 20,
         textAlign: 'center',
       },
-    
       /** BUTTONS * */
       buttonContainer: {
         marginTop: 20,
@@ -141,20 +145,7 @@ class Song extends Component {
     if (features.mode === 0) mode = ' Minor';
     else mode = ' Major';
 
-
-    // if ( params.songSaved ){
-    //   this.refs.songToast.show(
-    //     (<View>
-    //       <Text>Song was saved to your library.</Text>
-    //       <Text>Open Spotify</Text>
-    //     </View>),
-    //     3000,
-    //     () => params.resetSongSaved()
-    //   );
-
-    // }
     return (
-
       <ScrollView style={styles.containerStyle}>
 
         {/* SONG SAVED ALERT */}
@@ -284,13 +275,13 @@ class Song extends Component {
             <ListItem
               title='Duration'
               titleStyle={styles.title}
-              rightTitle={ this.millisToMinutesAndSeconds(song.duration_ms) }
+              rightTitle={ Song.millisToMinutesAndSeconds(song.duration_ms) }
               hideChevron={true}
             />
             <ListItem
               title='Key'
               titleStyle={styles.title}
-              rightTitle={ this.convertKey(features.key) + mode}
+              rightTitle={ Song.convertKey(features.key) + mode}
               hideChevron={true}
             />
             <ListItem
@@ -390,4 +381,10 @@ class Song extends Component {
   }
 }
 
-export default Song;
+const mapStateToProps = state => ({
+  accessToken: state.accessToken,
+  songs: state.songs,
+  addSongs: state.addSongs,
+});
+
+export default connect(mapStateToProps, actions)(Song);

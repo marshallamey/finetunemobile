@@ -20,7 +20,8 @@ import * as actions from '../actions';
 
 
 const spotifyApi = new SpotifyWebApi();
-let accessToken = '';
+
+
 
 class PlaylistResults extends Component {
   /** CONSTRUCTOR() */
@@ -45,14 +46,17 @@ class PlaylistResults extends Component {
       songIndex: 0,
     };
 
-    AsyncStorage.getItem('accessToken', (err, token) => {
-      accessToken = token;
-    });
+    spotifyApi.setAccessToken(this.props.accessToken);
 
     this.onNameChange = this.onNameChange.bind(this);
     this.playNext = this.playNext.bind(this);
     this.playPrevious = this.playPrevious.bind(this);
     this.savePlaylist = this.savePlaylist.bind(this);
+    this.playSong = this.playSong.bind(this);
+    this.playAllSongs = this.playAllSongs.bind(this);
+    this.pauseSong = this.pauseSong.bind(this);
+    this.resumeSong = this.resumeSong.bind(this);
+    
   }
 
   /** FUNCTION(): Change state of playlistName */
@@ -88,7 +92,30 @@ class PlaylistResults extends Component {
    *             MUSIC PLAYER FUNCTIONS                   *
    ****************************************************** */
 
-  // _playAllSongs() {}
+  playAllSongs() {
+
+    const songURIs = this.props.songs.map(song => song.uri);
+    // Send a Spotify request to play the song
+    spotifyApi.play({
+      device_id: this.props.deviceID,
+      uris: songURIs
+    })
+
+      .then(() => {
+        setTimeout(() => this.checkForPlayback(), 2000);       
+      })
+      .catch((err) => {
+        console.log('COULD NOT PLAY THE SONG!', err);
+        AppLink.maybeOpenURL(this.props.songs[0].uri, {
+          appName: 'Spotify',
+          appStoreId: '324684580',
+          playStoreId: 'com.spotify.music',
+        })
+          .catch((err) => {
+            console.log('FINETUNE APP:: Error opening Spotify', err);
+          });
+      });
+  }
 
   /** FUNCTION(): Make a Spotify API request to play a song */
   playSong(index) {
@@ -102,72 +129,38 @@ class PlaylistResults extends Component {
       songIndex: index,
     });
 
-    // If there isn't a saved device ID for the smartphone
-    if (this.state.deviceID === '') {
-      // Send a request to get the device ID of the phone
-      axios({
-        method: 'GET',
-        url: 'https://api.spotify.com/v1/me/player/devices',
-        headers: { Authorization: `Bearer ${accessToken}` },
+    // Send a Spotify request to play the song
+    axios({
+      method: 'PUT',
+      url: 'https://api.spotify.com/v1/me/player/play',
+      headers: { Authorization: `Bearer ${this.props.accessToken}` },
+      params: { device_id: this.props.deviceID },
+      data: { uris: [song.uri] },
+    })
+      .then(() => {
+        setTimeout(() => this.checkForPlayback(), 2000);       
       })
-        .then((res) => {
-        // If there is a device that is a smart phone
-        // TODO:: Smartphone may not be the first option!!
-          if (res.data.devices.length) {
-          // Save the device and play the song
-            this.setState({ deviceID: res.data.devices[0].id });
-            axios({
-              method: 'PUT',
-              url: 'https://api.spotify.com/v1/me/player/play',
-              headers: { Authorization: `Bearer ${accessToken}` },
-              params: { device_id: res.data.devices[0].id },
-              data: { uris: [song.uri] },
-            })
-              .then(() => {
-                axios({
-                  method: 'GET',
-                  url: 'https://api.spotify.com/v1/me/player/currently-playing',
-                  headers: { Authorization: `Bearer ${accessToken}` },
-                })
-                  .then((playing) => { console.log('RESPONSE FROM CURRENTLY PLAYING ==> ', playing.data.is_playing); })
-                  .catch((err) => { console.log('ERROR GETTING CURRENTLY PLAYING ', err); });
-              })
-              .catch((err) => {
-                console.log('COULD NOT PLAY THE SONG!', err);
-              });
-          } else {
-          // Else open the Spotify app on the phone and play the song
-            AppLink.maybeOpenURL(song.uri, {
-              appName: 'Spotify',
-              appStoreId: '324684580',
-              playStoreId: 'com.spotify.music',
-            })
-              .catch((err) => {
-                console.log('FINETUNE APP:: Error opening Spotify', err);
-              });
-          }
+      .catch((err) => {
+        console.log('COULD NOT PLAY THE SONG!', err);
+        AppLink.maybeOpenURL(song.uri, {
+          appName: 'Spotify',
+          appStoreId: '324684580',
+          playStoreId: 'com.spotify.music',
         })
-        .catch((err) => { console.log('ERROR RETRIEVING DEVICES: ', err); });
-    } else {
-      axios({
-        method: 'PUT',
-        url: 'https://api.spotify.com/v1/me/player/play',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: { device_id: this.state.deviceID },
-        data: { uris: [song.uri] },
-      })
-        .then((res) => {
-          console.log('RESPONSE FROM PLAY SONG REQUEST ==> ', res.status);
-          axios({
-            method: 'GET',
-            url: 'https://api.spotify.com/v1/me/player/currently-playing',
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-            .then((playing) => { console.log('RESPONSE FROM CURRENTLY PLAYING ==> ', playing.data.is_playing); })
-            .catch((err) => { console.log('ERROR GETTING CURRENTLY PLAYING ', err); });
-        })
-        .catch((err) => { console.log('COULD NOT PLAY THE SONG!', err); });
-    }
+          .catch((err) => {
+            console.log('FINETUNE APP:: Error opening Spotify', err);
+          });
+      });
+  }
+
+  checkForPlayback() {
+    axios({
+      method: 'GET',
+      url: 'https://api.spotify.com/v1/me/player/currently-playing',
+      headers: { Authorization: `Bearer ${this.props.accessToken}` },
+    })
+      .then((playing) => { console.log('RESPONSE FROM CURRENTLY PLAYING ==> ', playing.data.is_playing); })
+      .catch((err) => { console.log('ERROR GETTING CURRENTLY PLAYING ', err); });
   }
 
   /** FUNCTION(): Make a Spotify API request to play a song */
@@ -175,7 +168,7 @@ class PlaylistResults extends Component {
     let index = 0;
     if (this.state.songIndex === this.props.songs.length - 1) index = 0;
     else index = this.state.songIndex + 1;
-    this.playSong(index);
+    spotifyApi.skipToNext();
   }
 
   /** FUNCTION(): Make a Spotify API request to play a song */
@@ -183,14 +176,33 @@ class PlaylistResults extends Component {
     let index = 0;
     if (this.state.songIndex === 0) index = this.props.songs.length - 1;
     else index = this.state.songIndex - 1;
-    this.playSong(index);
+    spotifyApi.skipToPrevious();
   }
 
   /** FUNCTION(): Make a Spotify API request to play a song */
-  // resumeSong() { }
+  resumeSong() {
+    axios({
+      method: 'PUT',
+      url: 'https://api.spotify.com/v1/me/player/play',
+      headers: { Authorization: `Bearer ${this.props.accessToken}` },
+      params: { device_id: this.props.deviceID },
+    })
+      .catch((err) => { console.log('COULD NOT PAUSE THE SONG!', err); });
+  }
 
   /** FUNCTION(): Make a Spotify API request to pause a song */
-  // pauseSong() { }
+  pauseSong() {
+    axios({
+      method: 'PUT',
+      url: 'https://api.spotify.com/v1/me/player/pause',
+      headers: { Authorization: `Bearer ${this.props.accessToken}` },
+      params: { device_id: this.props.deviceID },
+    })
+      .then(() => {
+        this.setState({ playing: false })
+      })
+      .catch((err) => { console.log('COULD NOT PAUSE THE SONG!', err); });
+  }
 
   /** FUNCTION(): Delete song from playlist */
   deleteSong(index) {
@@ -367,6 +379,7 @@ class PlaylistResults extends Component {
           <MusicPlayer
             pauseSong={this.pauseSong}
             playSong={this.playSong}
+            playAllSongs={this.playAllSongs}
             resumeSong={this.resumeSong}
             playNext={this.playNext}
             playPrevious={this.playPrevious}
@@ -399,7 +412,10 @@ class PlaylistResults extends Component {
 }
 
 const mapStateToProps = state => ({
+  accessToken: state.accessToken,
   songs: state.songs,
   addSongs: state.addSongs,
+  deviceID: state.deviceID,
+  setDeviceID: state.setDeviceID,
 });
 export default connect(mapStateToProps, actions)(PlaylistResults);

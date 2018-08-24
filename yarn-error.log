@@ -1,8 +1,8 @@
 Arguments: 
-  /usr/bin/node /mnt/c/Program Files (x86)/Yarn/bin/yarn.js add react-native-swipeable
+  /usr/bin/node /mnt/c/Program Files (x86)/Yarn/bin/yarn.js add react-native-vector-icons
 
 PATH: 
-  /home/marshalljamey/bin:/home/marshalljamey/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Users/MarshallAmey/algs4/java/bin:/mnt/c/ProgramData/Oracle/Java/javapath_target_291837687:/mnt/c/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64/compiler:/mnt/c/Windows/System32:/mnt/c/Windows:/mnt/c/Windows/System32/wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0:/mnt/c/Program Files/Calibre2:/mnt/c/OpenSSL-Win32:/mnt/c/Program Files/Java/jdk1.8.0_144/bin:/mnt/c/Program Files/Java/jre1.8.0_144/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/PuTTY:/mnt/c/xampp/php:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/nodejs:/mnt/c/Program Files/MySQL/MySQL Utilities 1.6:/mnt/c/Windows/System32/OpenSSH:/mnt/c/Program Files (x86)/Yarn/bin:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/MarshallAmey/AppData/Roaming/npm:/mnt/c/Users/MarshallAmey/algs4/bin:/mnt/c/Users/MarshallAmey/algs4/java/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/MarshallAmey/AppData/Local/atom/bin:/mnt/c/Program Files/Heroku/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Microsoft/WindowsApps:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Yarn/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/tools:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/platform-tools:/snap/bin:/usr/local/bin
+  /home/marshalljamey/bin:/home/marshalljamey/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Users/MarshallAmey/algs4/java/bin:/mnt/c/ProgramData/Oracle/Java/javapath_target_291837687:/mnt/c/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64/compiler:/mnt/c/Windows/System32:/mnt/c/Windows:/mnt/c/Windows/System32/wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0:/mnt/c/Program Files/Calibre2:/mnt/c/OpenSSL-Win32:/mnt/c/Program Files/Java/jdk1.8.0_144/bin:/mnt/c/Program Files/Java/jre1.8.0_144/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/PuTTY:/mnt/c/xampp/php:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/nodejs:/mnt/c/Program Files/MySQL/MySQL Utilities 1.6:/mnt/c/Windows/System32/OpenSSH:/mnt/c/Program Files (x86)/Yarn/bin:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/MarshallAmey/AppData/Roaming/npm:/mnt/c/Users/MarshallAmey/algs4/bin:/mnt/c/Users/MarshallAmey/algs4/java/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/MarshallAmey/AppData/Local/atom/bin:/mnt/c/Program Files/Heroku/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Microsoft/WindowsApps:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Yarn/bin:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/tools:/mnt/c/Users/MarshallAmey/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/MarshallAmey/AppData/Local/GitHubDesktop/bin:/snap/bin:/usr/local/bin
 
 Yarn version: 
   1.7.0
@@ -14,7 +14,7 @@ Platform:
   linux x64
 
 Trace: 
-  Error: ENOENT: no such file or directory, scandir '/mnt/c/Projects/FineTuneMobile/node_modules/react-native/ReactAndroid/src/main/third-party/java/sqlite'
+  Error: ENOENT: no such file or directory, scandir '/mnt/c/Projects/FineTuneMobile/node_modules/art/lib/sheet.js'
 
 npm manifest: 
   {
@@ -23,19 +23,26 @@ npm manifest:
     "private": true,
     "dependencies": {
       "@ptomasroos/react-native-multi-slider": "^1.0.0",
+      "axios": "^0.18.0",
       "babel-plugin-module-resolver": "^3.1.1",
       "prop-types": "^15.6.2",
+      "query-string": "^6.1.0",
       "react": "16.3.1",
       "react-dom": "^16.4.2",
       "react-native": "0.55.4",
+      "react-native-app-link": "^0.4.1",
       "react-native-button": "^2.3.0",
+      "react-native-easy-toast": "^1.1.0",
       "react-native-elements": "^0.19.1",
       "react-native-modal": "^6.5.0",
       "react-native-sectioned-multi-select": "^0.5.2",
       "react-native-spotify-web-api": "^0.1.0",
       "react-native-svg": "^6.5.2",
+      "react-native-swipeable": "^0.6.0",
       "react-native-vector-icons": "^5.0.0",
       "react-navigation": "^2.11.2",
+      "react-redux": "^5.0.7",
+      "redux": "^4.0.0",
       "spotify-web-api-js": "^0.24.0",
       "spotify-web-api-node": "^3.1.1",
       "victory-native": "^30.1.0"
@@ -47,6 +54,13 @@ npm manifest:
       "android": {
         "mainFilePath": "src/main/java/com/marshallamey/finetunemobile/MainApplication.java"
       }
+    },
+    "devDependencies": {
+      "babel-eslint": "^8.2.6",
+      "eslint": "^5.4.0",
+      "eslint-config-airbnb-base": "^13.1.0",
+      "eslint-plugin-import": "^2.14.0",
+      "eslint-plugin-react": "^7.11.1"
     }
   }
 
@@ -665,6 +679,13 @@ Lockfile:
   atob@^2.1.1:
     version "2.1.1"
     resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.1.tgz#ae2d5a729477f289d60dd7f96a6314a22dd6c22a"
+  
+  axios@^0.18.0:
+    version "0.18.0"
+    resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+    dependencies:
+      follow-redirects "^1.3.0"
+      is-buffer "^1.1.5"
   
   babel-code-frame@^6.26.0:
     version "6.26.0"
@@ -2033,6 +2054,12 @@ Lockfile:
     dependencies:
       locate-path "^2.0.0"
   
+  follow-redirects@^1.3.0:
+    version "1.5.6"
+    resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.6.tgz#44eb4fe1981dff25e2bd86b7d4033abcdb81e965"
+    dependencies:
+      debug "^3.1.0"
+  
   for-in@^1.0.1, for-in@^1.0.2:
     version "1.0.2"
     resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -2321,7 +2348,7 @@ Lockfile:
       strip-ansi "^4.0.0"
       through "^2.3.6"
   
-  invariant@^2.2.2:
+  invariant@^2.0.0, invariant@^2.2.2:
     version "2.2.4"
     resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
     dependencies:
@@ -2645,6 +2672,10 @@ Lockfile:
     dependencies:
       p-locate "^2.0.0"
       path-exists "^3.0.0"
+  
+  lodash-es@^4.17.5:
+    version "4.17.10"
+    resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.10.tgz#62cd7104cdf5dd87f235a837f0ede0e8e5117e05"
   
   lodash.isempty@^4.4.0:
     version "4.4.0"
@@ -3508,6 +3539,10 @@ Lockfile:
     dependencies:
       prop-types "^15.5.10"
   
+  react-native-app-link@^0.4.1:
+    version "0.4.1"
+    resolved "https://registry.yarnpkg.com/react-native-app-link/-/react-native-app-link-0.4.1.tgz#19095baf4ff53d5c4346a8bc67f5fa2fd1e0aa4c"
+  
   react-native-button@^2.3.0:
     version "2.3.0"
     resolved "https://registry.yarnpkg.com/react-native-button/-/react-native-button-2.3.0.tgz#7d0a90095d415b0edf98a904556a7c4439646568"
@@ -3529,6 +3564,12 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/react-native-drawer-layout/-/react-native-drawer-layout-1.3.2.tgz#b9740d7663a1dc4f88a61b9c6d93d2d948ea426e"
     dependencies:
       react-native-dismiss-keyboard "1.0.0"
+  
+  react-native-easy-toast@^1.1.0:
+    version "1.1.0"
+    resolved "https://registry.yarnpkg.com/react-native-easy-toast/-/react-native-easy-toast-1.1.0.tgz#7d3a34ed298d32c4827b8d43ddfab6a71b98a2e3"
+    dependencies:
+      prop-types "^15.5.10"
   
   react-native-elements@^0.19.1:
     version "0.19.1"
@@ -3576,6 +3617,12 @@ Lockfile:
       color "^2.0.1"
       lodash "^4.16.6"
       pegjs "^0.10.0"
+  
+  react-native-swipeable@^0.6.0:
+    version "0.6.0"
+    resolved "https://registry.yarnpkg.com/react-native-swipeable/-/react-native-swipeable-0.6.0.tgz#0fe551330018b83c754d27f505709a594f554370"
+    dependencies:
+      prop-types "^15.5.10"
   
   react-native-tab-view@^0.0.77:
     version "0.0.77"
@@ -3705,6 +3752,17 @@ Lockfile:
       lodash "^4.6.1"
       react-deep-force-update "^1.0.0"
   
+  react-redux@^5.0.7:
+    version "5.0.7"
+    resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-5.0.7.tgz#0dc1076d9afb4670f993ffaef44b8f8c1155a4c8"
+    dependencies:
+      hoist-non-react-statics "^2.5.0"
+      invariant "^2.0.0"
+      lodash "^4.17.5"
+      lodash-es "^4.17.5"
+      loose-envify "^1.1.0"
+      prop-types "^15.6.0"
+  
   react-timer-mixin@^0.13.2:
     version "0.13.4"
     resolved "https://registry.yarnpkg.com/react-timer-mixin/-/react-timer-mixin-0.13.4.tgz#75a00c3c94c13abe29b43d63b4c65a88fc8264d3"
@@ -3751,6 +3809,13 @@ Lockfile:
       safe-buffer "~5.1.1"
       string_decoder "~1.1.1"
       util-deprecate "~1.0.1"
+  
+  redux@^4.0.0:
+    version "4.0.0"
+    resolved "https://registry.yarnpkg.com/redux/-/redux-4.0.0.tgz#aa698a92b729315d22b34a0553d7e6533555cc03"
+    dependencies:
+      loose-envify "^1.1.0"
+      symbol-observable "^1.2.0"
   
   regenerate@^1.2.1:
     version "1.4.0"
@@ -4246,6 +4311,10 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.4.0.tgz#1c6b337402c2137605efe19f10fec390f6faab54"
     dependencies:
       has-flag "^3.0.0"
+  
+  symbol-observable@^1.2.0:
+    version "1.2.0"
+    resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
   
   tar@^4:
     version "4.4.6"

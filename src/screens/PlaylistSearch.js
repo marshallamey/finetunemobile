@@ -6,10 +6,9 @@ import {
   View,
   Text,
   TouchableHighlight,
-  AsyncStorage,
 } from 'react-native';
-import { CheckBox, Icon } from 'react-native-elements';
-import Button from 'react-native-button';
+import { CheckBox, Icon, Button } from 'react-native-elements';
+import Modal from 'react-native-modal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import SpotifyWebApi from 'spotify-web-api-node';
 import HelpModal from '../components/HelpModal';
@@ -55,14 +54,14 @@ class PlaylistSearch extends Component {
       keyDisabled: true,
       modeDisabled: true,
 
+      genreAlert: false,
       isModalVisible: false,
       feature: 'none',
     };
-    AsyncStorage.getItem('accessToken', (err, token) => {
-      spotifyApi.setAccessToken(token);
-    });
+    spotifyApi.setAccessToken(this.props.accessToken);
 
     this.toggleHelpModal = this.toggleHelpModal.bind(this);
+    this.toggleGenreAlert = this.toggleGenreAlert.bind(this);
   }
 
   /** REACT NAVIGATION HEADER */
@@ -106,6 +105,11 @@ class PlaylistSearch extends Component {
     this.setState({ isModalVisible: !this.state.isModalVisible, feature: id });
   }
 
+  /* FUNCTION(): Show Modal to validate genre selection */
+  toggleGenreAlert() {
+    this.setState({ genreAlert: !this.state.genreAlert });
+  }
+
   /* FUNCTION(): Display the proper note for key attribute */
   static convertKey(note) {
     const pitchNotation = {
@@ -136,6 +140,10 @@ class PlaylistSearch extends Component {
 
   /* FUNCTION(): Send request to Spotify API once form is submitted */
   handleSubmit() {
+    if (!this.props.selectedGenres.length || this.props.selectedGenres.length > 5) {
+      this.toggleGenreAlert();
+      return;
+    }
     // Make sure genres are lower case before submitting
     const genres = this.props.selectedGenres.map(genre => genre.toLowerCase());
 
@@ -322,11 +330,48 @@ class PlaylistSearch extends Component {
         backgroundColor: '#ff2525',
         justifyContent: 'center',
       },
+      modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 4,
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+      },
+      modalContainer: {
+        flex: 1,
+      },
       iconSize: 16,
     };
 
+
     return (
       <ScrollView contentContainerStyle={ styles.containerStyle }>
+        <View style={styles.modalContainer}>
+          <Modal
+            transparent={true}
+            isVisible={this.state.genreAlert}
+            backdropColor={'#222222'}
+            backdropOpacity={0.8}
+            animationIn={'zoomInDown'}
+            animationOut={'zoomOutUp'}
+          >
+            <View style={styles.modalContent}>
+
+              <Text style={{ fontSize: 24, textAlign: 'center' }}>
+                You must select between 1 and 5 genres.
+              </Text>
+
+              <Button
+                title='Close'
+                backgroundColor='#ff2525'
+                color='#ffffff'
+                fontSize={20}
+                raised
+                onPress={ () => this.toggleGenreAlert() }
+              />
+
+            </View>
+          </Modal>
+        </View>
 
         {/* REQUIRED OPTIONS
         *   A user is required to choose either a set of genres OR an artist
@@ -343,12 +388,13 @@ class PlaylistSearch extends Component {
           {/* SUBMIT BUTTON TOP */}
           <View style={{ justifyContent: 'center', alignItems: 'center' }}>
             <Button
-            style={ styles.button }
-            containerStyle={ styles.buttonContainer }
-            onPress={ () => this.handleSubmit() } >
-              Submit
-            </Button>
-
+              title='Submit'
+              backgroundColor='#ff2525'
+              color='#ffffff'
+              fontSize={20}
+              raised
+              onPress={ () => this.handleSubmit() }
+            />
           </View>
 
           <View style={{ paddingTop: 5 }}>
@@ -400,9 +446,9 @@ class PlaylistSearch extends Component {
               allowOverlap />
 
             <Text style={styles.subheader2}>
-              { this.millisToMinutesAndSeconds(this.state.min_duration) }
+              { PlaylistSearch.millisToMinutesAndSeconds(this.state.min_duration) }
                to
-               { this.millisToMinutesAndSeconds(this.state.max_duration) }
+               { PlaylistSearch.millisToMinutesAndSeconds(this.state.max_duration) }
             </Text>
 
           </View>
@@ -807,7 +853,7 @@ class PlaylistSearch extends Component {
               step={ 1 }
               onValueChange={ event => this.onSliderChange('key', event) } />
 
-            <Text style={styles.subheader2}>{ this.convertKey(this.state.target_key) }</Text>
+            <Text style={styles.subheader2}>{ PlaylistSearch.convertKey(this.state.target_key) }</Text>
 
           </View>
 
@@ -858,12 +904,13 @@ class PlaylistSearch extends Component {
           {/* SUBMIT BUTTON BOTTOM */}
           <View style={ styles.viewStyleLight }>
             <Button
-              style={ styles.button }
-              containerStyle={ styles.buttonContainer }
+              title='Submit'
+              backgroundColor='#ff2525'
+              color='#ffffff'
+              fontSize={20}
+              raised
               onPress={ () => this.handleSubmit() }
-            >
-              Submit
-            </Button>
+            />
           </View>
 
           </View>
@@ -875,6 +922,8 @@ class PlaylistSearch extends Component {
 
 
 const mapStateToProps = state => ({
+  accessToken: state.accessToken,
+  expireTime: state.expireTime,
   allGenres: state.allGenres,
   selectedGenres: state.selectedGenres,
   selectGenre: state.selectGenre,

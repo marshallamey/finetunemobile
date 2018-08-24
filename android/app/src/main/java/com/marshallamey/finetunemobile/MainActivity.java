@@ -13,34 +13,26 @@ import com.facebook.react.common.LifecycleState;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 
-
-import com.spotify.sdk.android.authentication.AuthenticationClient;
-import com.spotify.sdk.android.authentication.AuthenticationRequest;
-import com.spotify.sdk.android.authentication.AuthenticationResponse;
-import com.spotify.sdk.android.player.Config;
-import com.spotify.sdk.android.player.ConnectionStateCallback;
-import com.spotify.sdk.android.player.Error;
-import com.spotify.sdk.android.player.Player;
-import com.spotify.sdk.android.player.PlayerEvent;
-import com.spotify.sdk.android.player.Spotify;
-import com.spotify.sdk.android.player.SpotifyPlayer;
-
 public class MainActivity extends ReactActivity 
-implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
+implements DefaultHardwareBackBtnHandler {
+
     private ReactRootView mReactRootView;
     private ReactInstanceManager mReactInstanceManager;
-
-    private static final String CLIENT_ID = "dc0873f2467341dd9340d038f6234843";
-    private static final String REDIRECT_URI = "finetunespotify://callback";
-    protected static Player mPlayer;
     protected static String accessToken;
-    protected static int expiresIn;
-    private static final int REQUEST_CODE = 7593026;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
+      setContentView(R.layout.activity_main);
+      //CHECK FOR ACCESS TOKEN FIRST!
+      Log.d("MainActivity", "CURRENT accessToken ==> " + accessToken);    
+      if (accessToken == null || accessToken.isEmpty()) {
+        Intent intent = new Intent(this, SignInActivity.class);
+        startActivity(intent);
+        return;
+      }
 
+      
       mReactRootView = new ReactRootView(this);
       mReactInstanceManager = ReactInstanceManager.builder()
         .setApplication(getApplication())
@@ -54,49 +46,12 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
       // The string here (e.g. "MyReactNativeApp") has to match
       // the string in AppRegistry.registerComponent() in index.js
       mReactRootView.startReactApplication(mReactInstanceManager, "finetunemobile", null);
-
-      AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
-      builder.setScopes(new String[]{
-        "user-read-private",
-        "playlist-modify-public",
-        "user-read-currently-playing",
-        "user-modify-playback-state",
-        "user-read-playback-state", 
-        "user-library-modify"
-        });
-      AuthenticationRequest request = builder.build();
-      AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
-      
+      setContentView(mReactRootView);    
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent); 
-
-        if (requestCode == REQUEST_CODE) {
-            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-            if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
-                
-                accessToken = response.getAccessToken();
-                Log.d("MainActivity", "Saving accessToken ==> " + accessToken);
-           
-                Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
-                    @Override
-                    public void onInitialized(SpotifyPlayer spotifyPlayer) {
-                        mPlayer = spotifyPlayer;
-                        mPlayer.addConnectionStateCallback(MainActivity.this);
-                        mPlayer.addNotificationCallback(MainActivity.this);
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
-                    }
-                });
-            }
-        }
-        setContentView(mReactRootView);
+      super.onActivityResult(requestCode, resultCode, intent); 
     }
 
     @Override
@@ -124,7 +79,6 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
 
     @Override
     protected void onDestroy() {
-      Spotify.destroyPlayer(this);
         super.onDestroy();
 
         if (mReactInstanceManager != null) {
@@ -151,51 +105,5 @@ implements DefaultHardwareBackBtnHandler, SpotifyPlayer.NotificationCallback, Co
             return true;
         }
         return super.onKeyUp(keyCode, event);
-    }
-
-    @Override
-    public void onPlaybackEvent(PlayerEvent playerEvent) {
-        Log.d("MainActivity", "Playback event received: " + playerEvent.name());
-        switch (playerEvent) {
-            // Handle event type as necessary
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onPlaybackError(Error error) {
-        Log.d("MainActivity", "Playback error received: " + error.name());
-        switch (error) {
-            // Handle error type as necessary
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onLoggedIn() {
-        Log.d("MainActivity", "User logged in");
-    }
-
-    @Override
-    public void onLoggedOut() {
-        Log.d("MainActivity", "User logged out");
-    }
-
-    @Override
-    public void onLoginFailed(Error var1) {
-        Log.d("MainActivity", "Login failed");
-  
-    }
-
-    @Override
-    public void onTemporaryError() {
-        Log.d("MainActivity", "Temporary error occurred");
-    }
-
-    @Override
-    public void onConnectionMessage(String message) {
-        Log.d("MainActivity", "Received connection message: " + message);
     }
 }

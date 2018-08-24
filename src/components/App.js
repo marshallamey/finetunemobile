@@ -1,42 +1,16 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import { createSwitchNavigator, createStackNavigator } from 'react-navigation';
-import reducers from '../reducers';
+import { PersistGate } from 'redux-persist/lib/integration/react';
+import { persistor, store } from '../store';
+import RootStack from './RootStack';
+import LoadingView from '../screens/LoadingView';
 
-import HomeScreen from '../screens/HomeScreen';
-import SongDetail from '../screens/SongDetailScreen';
-import Playlists from '../screens/Playlists';
-import PlaylistSearch from '../screens/PlaylistSearch';
-import PlaylistResults from '../screens/PlaylistResults';
-import SongSearch from '../screens/SongSearch';
-
-
-
-const RootStack = createStackNavigator(
-  {
-    Home: HomeScreen,
-    ListSearch: PlaylistSearch,
-    ListResults: PlaylistResults,
-    SongSearch: SongSearch,
-    SongDetail: SongDetail,
-    Playlists: Playlists
-  },
-  {
-    initialRouteName: 'Home'
-  }
+const App = () => (
+    <Provider store={store}>
+      <PersistGate loading={<LoadingView />} persistor={persistor}>
+        <RootStack />
+      </PersistGate>
+    </Provider>
 );
 
-
-export default class App extends Component {
-  render() {
-    return( 
-      <Provider store={createStore(reducers)}>
-        <RootStack />
-      </Provider> 
-    );
-  };
-};
-
-
-
+export default App;

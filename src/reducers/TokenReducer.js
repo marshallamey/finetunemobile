@@ -1,6 +1,6 @@
-export default (state = [], action) => {
+export default (state = '', action) => {
   switch (action.type) {
-    case 'add_genres':
+    case 'set_access_token':
       return action.payload;
     default:
       return state;

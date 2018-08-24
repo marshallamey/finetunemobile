@@ -41,7 +41,7 @@ const MusicPlayer = (props) => {
             : 
               <Icon 
                 name='play-arrow'
-                onPress={() => props.resumeSong() }
+                onPress={() => props.playSong() }
                 iconStyle={{fontSize: 40, color: '#1ed760'}} /> 
             }
           
