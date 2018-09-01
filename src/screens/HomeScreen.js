@@ -8,10 +8,14 @@ import { Button } from 'react-native-elements';
 import Modal from 'react-native-modal';
 import AppLink from 'react-native-app-link';
 import SpotifyWebApi from 'spotify-web-api-node';
-import * as actions from '../actions';
 import logo from '../img/finetune-banner-logo.jpg';
+import { GoogleAnalyticsTracker } from "react-native-google-analytics-bridge";
 import axios from 'axios';
 import spotifyLogo from '../img/spotify-logo.png';
+import * as actions from '../actions';
+
+const tracker = new GoogleAnalyticsTracker("UA-124564441-1");
+
 
 const spotifyApi = new SpotifyWebApi();
 let accessToken = '';
@@ -20,10 +24,12 @@ let currentTime = '';
 class HomeScreen extends Component {
   constructor(props) {
     super(props);
+    tracker.trackScreenView("HomeScreen");
     this.state = {
       spotifyAlert: false,
       idSaved: false,
     };
+
   }
 
   componentDidMount() {

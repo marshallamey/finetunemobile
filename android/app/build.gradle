@@ -1,4 +1,8 @@
 apply plugin: 'com.android.application'
+
+project.ext.react = [
+        entryFile: "index.js"
+]
 apply from: "../../node_modules/react-native/react.gradle"
 project.ext.vectoricons = [
         iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf' ] // Name of the font files you want to copy
@@ -77,9 +81,7 @@ import com.android.build.OutputFile
  * ]
  */
 
- project.ext.react = [
-    entryFile: "index.js"
-]
+
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -103,8 +105,8 @@ android {
         applicationId "com.marshallamey.finetunemobile"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "1.0.4"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -160,6 +162,8 @@ dependencies {
     implementation 'com.android.support:support-v4:26.1.0'
     implementation 'com.android.support:appcompat-v7:26.1.0'
 
+    implementation project(':react-native-google-analytics-bridge')
+    
     // This library handles authentication and authorization
     implementation 'com.spotify.android:auth:1.0.0-alpha'
 
@@ -168,7 +172,8 @@ dependencies {
 
     implementation "com.facebook.react:react-native:+" // From node_modules
 
-    implementation project(':react-native-svg')
+
+
 }
 
 // Run this once to be able to run the application with BUCK

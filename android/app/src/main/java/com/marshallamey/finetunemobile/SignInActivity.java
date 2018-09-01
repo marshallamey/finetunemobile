@@ -28,7 +28,6 @@ implements SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
     AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
     builder.setScopes(new String[]{
       "user-read-private",
@@ -45,7 +44,6 @@ implements SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
-    setContentView(R.layout.activity_main);
     if (requestCode == REQUEST_CODE) {
       AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
       if (response.getType() == AuthenticationResponse.Type.TOKEN) {       
